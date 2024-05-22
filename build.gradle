@@ -1,13 +1,5 @@
 plugins {
 	id 'java'
-	id 'com.diffplug.spotless' version '6.0.4'
-}
-
-spotless {
-	java {
-		googleJavaFormat()
-		target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
-	}
 }
 
 repositories {

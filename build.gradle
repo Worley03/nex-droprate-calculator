@@ -5,8 +5,8 @@ plugins {
 
 spotless {
 	java {
-		googleJavaFormat()  // Assuming you're using Google Java Format
-		target 'src/main/java/**/*.java', 'src/test/java/**/*.java'  // Targets all Java files in the main and test directories
+		googleJavaFormat()
+		target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
 	}
 }
 

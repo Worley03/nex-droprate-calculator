@@ -35,7 +35,6 @@ public class NexDroprateCalculatorRun {
   public double runAverageUniqueChancePercentPerHour = 0;
 
   public NexDroprateCalculatorRun() {}
-  ;
 
   public void updateRun(
       int ownContribution,
@@ -48,7 +47,7 @@ public class NexDroprateCalculatorRun {
     if (runFinished) {
       runIsMVP = isMVP;
       if (runIsMVP) {
-        double mvpBoost = runContributionPercent + 10.0;
+        double mvpBoost = runContributionPercent + (runContributionPercent * .10);
         if (mvpBoost > 100.0) mvpBoost = 100.0;
         runUniqueChanceRoll = (int) Math.ceil(43.0 * (100.0 / mvpBoost));
         runUniqueChancePercent = (1.0 / (double) runUniqueChanceRoll) * 100.0;

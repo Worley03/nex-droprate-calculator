@@ -5,7 +5,6 @@ import java.awt.image.BufferedImage;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
-import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.HitsplatApplied;
@@ -43,7 +42,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     panel.init();
 
     final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "icon.png");
-    navButton = NavigationButton.builder().tooltip("Nex").icon(icon).panel(panel).build();
+    navButton = NavigationButton.builder().tooltip("Nex Calculator").icon(icon).panel(panel).build();
 
     clientToolbar.addNavigation(navButton);
     log.debug("Nex Droprate Calculator Plugin started successfully");
@@ -61,61 +60,55 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
   @Subscribe
   public void onGameTick(GameTick tick) {
-    ///Player player = client.getLocalPlayer();
-    ///WorldPoint location = player.getWorldLocation();
-    ///log.debug("Player location: {}", location.toString());
 
-    if (1 == 1) {
-      log.debug("Player is in the Nex arena");
-      NPC nex = client.getNpcs().stream()
-              .filter(npc -> npc.getId() >= 11278 && npc.getId() <= 11282)
-              .findFirst()
-              .orElse(null);
+    NPC nex = client.getNpcs().stream()
+            .filter(npc -> npc.getId() >= 11278 && npc.getId() <= 11282)
+            .findFirst()
+            .orElse(null);
 
-      inFight = nex != null;
-      log.info("inFight status: {}", inFight);
+    inFight = nex != null;
+    log.debug("inFight status: {}", inFight);
 
-      if (inFight) {
-        if (!inFightInit) {
-          log.info("Initializing fight");
-          waitTicks = 2;
-          dumpResults = true;
-          inFightInit = true;
-          isMVP = false;
-          minContribution = false;
-          ownContribution = 0;
-          totalContribution = 0;
-        }
-
-        int players = (int) client.getPlayers().stream()
-                .count();
-        log.info("Number of players in fight: {}", players);
-        panel.updateValues(ownContribution, totalContribution, players, isMVP, minContribution, 1);
+    if (inFight) {
+      if (!inFightInit) {
+        log.debug("Initializing fight");
+        waitTicks = 2;
+        dumpResults = true;
+        inFightInit = true;
+        isMVP = false;
+        minContribution = false;
         ownContribution = 0;
         totalContribution = 0;
-        return;
       }
 
-      if (waitTicks > 0) {
-        waitTicks--;
-        log.debug("Waiting ticks: {}", waitTicks);
-      } else {
-        if (dumpResults) {
-          log.debug("Dumping results");
-          panel.updateValues(0, 0, 0, isMVP, minContribution, 0);
-          dumpResults = false;
-          inFightInit = false;
-        }
-      }
-    } else {
-      if (inFight) {
-        log.debug("Exiting fight");
-        panel.updateValues(0, 0, 0, false, false, -1);
-      }
-      inFight = false;
-      inFightInit = false;
+      int players = (int) client.getPlayers().stream().count();
+      log.debug("Number of players in fight: {}", players);
+      panel.updateValues(ownContribution, totalContribution, players, isMVP, minContribution, 1);
+      ownContribution = 0;
+      totalContribution = 0;
+      return;
     }
+
+    if (waitTicks > 0) {
+      waitTicks--;
+      log.debug("Waiting ticks: {}", waitTicks);
+    } else {
+      if (dumpResults) {
+        log.debug("Dumping results");
+        panel.updateValues(0, 0, 0, isMVP, minContribution, 0);
+        dumpResults = false;
+        inFightInit = false;
+      }
+    }
+
+    if (inFight) {
+      log.debug("Exiting fight");
+      panel.updateValues(0, 0, 0, false, false, -1);
+    }
+    inFight = false;
+    inFightInit = false;
   }
+
 
   @Subscribe
   public void onChatMessage(ChatMessage chatMessage) {

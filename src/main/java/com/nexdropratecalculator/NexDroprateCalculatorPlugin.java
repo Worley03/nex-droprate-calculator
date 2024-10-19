@@ -21,13 +21,9 @@ import net.runelite.client.util.ImageUtil;
 @PluginDescriptor(name = "Nex Droprate Calculator")
 public class NexDroprateCalculatorPlugin extends Plugin {
   @Inject private Client client;
-
   @Inject private ClientToolbar clientToolbar;
-
   private NexDroprateCalculatorPanel panel;
-
   private NavigationButton navButton;
-
   @Inject private NexDroprateCalculatorConfig config;
 
   private int ownContribution = 0;
@@ -35,7 +31,6 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
   private boolean inFight = false;
   private boolean inFightInit = false;
-
   private boolean isMVP = false;
   private boolean minContribution = false;
   private int waitTicks = 0;
@@ -43,46 +38,46 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
   @Override
   protected void startUp() throws Exception {
+    log.debug("Starting Nex Droprate Calculator Plugin");
     panel = injector.getInstance(NexDroprateCalculatorPanel.class);
     panel.init();
 
     final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "icon.png");
-
-    navButton =
-        NavigationButton.builder().tooltip("Info").icon(icon).priority(10).panel(panel).build();
+    navButton = NavigationButton.builder().tooltip("Nex").icon(icon).panel(panel).build();
 
     clientToolbar.addNavigation(navButton);
+    log.debug("Nex Droprate Calculator Plugin started successfully");
   }
 
   @Override
   protected void shutDown() {
+    log.debug("Shutting down Nex Droprate Calculator Plugin");
     panel.deinit();
     clientToolbar.removeNavigation(navButton);
     panel = null;
     navButton = null;
+    log.debug("Nex Droprate Calculator Plugin shut down successfully");
   }
 
   @Subscribe
   public void onGameTick(GameTick tick) {
     Player player = client.getLocalPlayer();
     WorldPoint location = player.getWorldLocation();
+    log.debug("Player location: {}", location.toString());
 
-    if (location.getX() >= 6550
-        && location.getX() <= 6578
-        && location.getY() >= 1606
-        && location.getY() <= 1632) {
-      // Player is in nex arena
-      NPC nex =
-          client.getNpcs().stream()
+    if (location.getX() >= 6900 && location.getX() <= 7000 && location.getY() >= 4000 && location.getY() <= 4300) {
+      log.debug("Player is in the Nex arena");
+      NPC nex = client.getNpcs().stream()
               .filter(npc -> npc.getId() >= 11278 && npc.getId() <= 11282)
               .findFirst()
               .orElse(null);
 
-      if (nex != null) inFight = true;
-      else inFight = false;
+      inFight = nex != null;
+      log.debug("inFight status: {}", inFight);
 
       if (inFight) {
         if (!inFightInit) {
+          log.debug("Initializing fight");
           waitTicks = 2;
           dumpResults = true;
           inFightInit = true;
@@ -91,16 +86,12 @@ public class NexDroprateCalculatorPlugin extends Plugin {
           ownContribution = 0;
           totalContribution = 0;
         }
-        int players =
-            (int)
-                client.getPlayers().stream()
-                    .filter(
-                        pla ->
-                            player.getWorldLocation().getX() >= 6550
-                                && player.getWorldLocation().getX() <= 6578
-                                && player.getWorldLocation().getY() >= 1606
-                                && player.getWorldLocation().getY() <= 1632)
-                    .count();
+
+        int players = (int) client.getPlayers().stream()
+                .filter(pla -> pla.getWorldLocation().getX() >= 6900 && pla.getWorldLocation().getX() <= 7000
+                        && pla.getWorldLocation().getY() >= 4000 && pla.getWorldLocation().getY() <= 4300)
+                .count();
+        log.debug("Number of players in fight: {}", players);
         panel.updateValues(ownContribution, totalContribution, players, isMVP, minContribution, 1);
         ownContribution = 0;
         totalContribution = 0;
@@ -109,8 +100,10 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
       if (waitTicks > 0) {
         waitTicks--;
+        log.debug("Waiting ticks: {}", waitTicks);
       } else {
         if (dumpResults) {
+          log.debug("Dumping results");
           panel.updateValues(0, 0, 0, isMVP, minContribution, 0);
           dumpResults = false;
           inFightInit = false;
@@ -118,6 +111,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
       }
     } else {
       if (inFight) {
+        log.debug("Exiting fight");
         panel.updateValues(0, 0, 0, false, false, -1);
       }
       inFight = false;
@@ -128,15 +122,15 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   @Subscribe
   public void onChatMessage(ChatMessage chatMessage) {
     Player player = client.getLocalPlayer();
+    log.debug("Received chat message: {}", chatMessage.getMessage());
+
     if (chatMessage.getType() == ChatMessageType.GAMEMESSAGE) {
-      log.debug("GAMEMESSAGE LOGGING WORKS");
-      String message = chatMessage.getMessage();
-      if (message.contains("You were the MVP for this fight")) {
-        log.debug("MVP MESSAGE WORKS");
+      if (chatMessage.getMessage().contains("You were the MVP for this fight")) {
+        log.debug("MVP message detected");
         isMVP = true;
       }
-      if (message.contains("received a drop")) {
-        log.debug("DROP MESSAGE WORKS");
+      if (chatMessage.getMessage().contains("received a drop")) {
+        log.debug("Drop message detected");
         minContribution = true;
       }
     }
@@ -147,8 +141,12 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     if (inFight) {
       if (hitsplatApplied.getActor() instanceof NPC) {
         Hitsplat hitsplat = hitsplatApplied.getHitsplat();
-        if (hitsplat.isMine()) ownContribution += hitsplat.getAmount();
+        if (hitsplat.isMine()) {
+          log.debug("Hitsplat applied to me: {}", hitsplat.getAmount());
+          ownContribution += hitsplat.getAmount();
+        }
         totalContribution += hitsplat.getAmount();
+        log.debug("Total contribution updated: {}", totalContribution);
       }
     }
   }

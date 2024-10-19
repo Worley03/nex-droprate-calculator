@@ -61,11 +61,11 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
   @Subscribe
   public void onGameTick(GameTick tick) {
-    Player player = client.getLocalPlayer();
-    WorldPoint location = player.getWorldLocation();
-    log.debug("Player location: {}", location.toString());
+    ///Player player = client.getLocalPlayer();
+    ///WorldPoint location = player.getWorldLocation();
+    ///log.debug("Player location: {}", location.toString());
 
-    if (location.getX() >= 6900 && location.getX() <= 7000 && location.getY() >= 4000 && location.getY() <= 4300) {
+    if (1 == 1) {
       log.debug("Player is in the Nex arena");
       NPC nex = client.getNpcs().stream()
               .filter(npc -> npc.getId() >= 11278 && npc.getId() <= 11282)
@@ -73,11 +73,11 @@ public class NexDroprateCalculatorPlugin extends Plugin {
               .orElse(null);
 
       inFight = nex != null;
-      log.debug("inFight status: {}", inFight);
+      log.info("inFight status: {}", inFight);
 
       if (inFight) {
         if (!inFightInit) {
-          log.debug("Initializing fight");
+          log.info("Initializing fight");
           waitTicks = 2;
           dumpResults = true;
           inFightInit = true;
@@ -88,10 +88,8 @@ public class NexDroprateCalculatorPlugin extends Plugin {
         }
 
         int players = (int) client.getPlayers().stream()
-                .filter(pla -> pla.getWorldLocation().getX() >= 6900 && pla.getWorldLocation().getX() <= 7000
-                        && pla.getWorldLocation().getY() >= 4000 && pla.getWorldLocation().getY() <= 4300)
                 .count();
-        log.debug("Number of players in fight: {}", players);
+        log.info("Number of players in fight: {}", players);
         panel.updateValues(ownContribution, totalContribution, players, isMVP, minContribution, 1);
         ownContribution = 0;
         totalContribution = 0;

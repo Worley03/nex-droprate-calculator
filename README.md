@@ -1,7 +1,7 @@
 # Nex Droprate Calculator
 This plugin monitors the players contribution to Nex fights and calculates the roll for a unique drop.
 
-Here is a overview of the monitored properties:
+Overview of the monitored properties:
 
 - Unique Chance: The percent chance to receive an unique drop.
 - Unique Roll: The roll that is made to receive an unique drop.

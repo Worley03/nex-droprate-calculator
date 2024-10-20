@@ -14,6 +14,6 @@ Overview of the monitored properties:
 
 In the average section, runs that were not canceled are calculated together to receive an average. It can be used to monitor how you do over a course of time and how likely you are to receive unique drops. We have some more properties here:
 - Total Runs: The amount of runs that were calculated to an average.
-- MVP Total.: The total times the player was MVP.
+- MVP Total: The total times the player was MVP.
 - Runs/hr: A rough estimate how many runs you can do per hour, excluding banking and restock time, but includes respawn time.
 - Uniques Chance/hr: Based on Runs/hr and average unique chance.

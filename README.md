@@ -1,5 +1,5 @@
 # Nex Droprate Calculator
-This plugin monitors the players contribution to Nex fights and calculates the roll for a unique drop.
+This plugin monitors the players contribution to Nex fights and continuously calculates the roll for a unique drop.
 
 Overview of the monitored properties:
 

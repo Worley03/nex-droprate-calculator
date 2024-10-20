@@ -30,7 +30,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     runPanel.setLayout(new GridLayout(0, 1));
 
     // Current run labels
-    runPanel.add(new JLabel(labelTitle("- Current Run -")));
+    runPanel.add(new JLabel(labelTitle("- Current Kill -")));
     ((JLabel) runPanel.getComponent(0)).setFont(font);
     runPanel.add(new JLabel(labelValue("Unique Chance", "0.0000%")));
     ((JLabel) runPanel.getComponent(1)).setFont(font);
@@ -54,7 +54,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     ((JLabel) runPanel.getComponent(10)).setFont(font);
 
     // Last run labels
-    runPanel.add(new JLabel(labelTitle("- Last Run -")));
+    runPanel.add(new JLabel(labelTitle("- Last Kill -")));
     ((JLabel) runPanel.getComponent(11)).setFont(font);
     runPanel.add(new JLabel(labelValue("Unique Chance", "0.0000%")));
     ((JLabel) runPanel.getComponent(12)).setFont(font);
@@ -76,9 +76,9 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     ((JLabel) runPanel.getComponent(20)).setFont(font);
 
     // Average run labels
-    runPanel.add(new JLabel(labelTitle("- Average Runs -")));
+    runPanel.add(new JLabel(labelTitle("- Average Kills -")));
     ((JLabel) runPanel.getComponent(21)).setFont(font);
-    runPanel.add(new JLabel(labelValue("Total Runs", "0")));
+    runPanel.add(new JLabel(labelValue("Total Kills", "0")));
     ((JLabel) runPanel.getComponent(22)).setFont(font);
     runPanel.add(new JLabel(labelValue("Unique Chance", "0.0000%")));
     ((JLabel) runPanel.getComponent(23)).setFont(font);
@@ -98,9 +98,9 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     ((JLabel) runPanel.getComponent(30)).setFont(font);
     runPanel.add(new JLabel(labelValue("Time", "00h 00m 00s")));
     ((JLabel) runPanel.getComponent(31)).setFont(font);
-    runPanel.add(new JLabel(labelValue("Runs / h", "0.00")));
+    runPanel.add(new JLabel(labelValue("Kills / hr", "0.00")));
     ((JLabel) runPanel.getComponent(32)).setFont(font);
-    runPanel.add(new JLabel(labelValue("Unique Chance / h", "0.0000%")));
+    runPanel.add(new JLabel(labelValue("Unique Chance / hr", "0.0000%")));
     ((JLabel) runPanel.getComponent(33)).setFont(font);
     runPanel.add(new JLabel(labelEmpty()));
     ((JLabel) runPanel.getComponent(34)).setFont(font);
@@ -209,7 +209,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
 
     // Average run labels
     ((JLabel) runPanel.getComponent(22))
-        .setText(labelValue("Total Runs", String.valueOf(averageRun.getRunAverageTotal())));
+        .setText(labelValue("Total Kills", String.valueOf(averageRun.getRunAverageTotal())));
     ((JLabel) runPanel.getComponent(23))
         .setText(
             labelValue(
@@ -248,11 +248,11 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
         .setText(labelValue("Time", averageRun.getRunAverageTime()));
     ((JLabel) runPanel.getComponent(32))
         .setText(
-            labelValue("Runs / h", String.format("%.2f", averageRun.getRunAverageRunsPerHour())));
+            labelValue("Kills / hr", String.format("%.2f", averageRun.getRunAverageRunsPerHour())));
     ((JLabel) runPanel.getComponent(33))
         .setText(
             labelValue(
-                "Unique Chance / h",
+                "Unique Chance / hr",
                 String.format("%.4f", averageRun.getRunAverageUniqueChancePercentPerHour()) + "%"));
   }
 
@@ -279,11 +279,11 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
 
   private static String labelState(int state) {
     if (state < 0) {
-      return "<html><body><span style='color: #b3b3b3'>Run: </span><span style='color:yellow'>Canceled</span></body></html>";
+      return "<html><body><span style='color: #b3b3b3'>Nex: </span><span style='color:yellow'>Canceled</span></body></html>";
     } else if (state > 0) {
-      return "<html><body><span style='color: #b3b3b3'>Run: </span><span style='color:green'>Active</span></body></html>";
+      return "<html><body><span style='color: #b3b3b3'>Nex: </span><span style='color:green'>Active</span></body></html>";
     } else {
-      return "<html><body><span style='color: #b3b3b3'>Run: </span><span style='color:red'>Not Active</span></body></html>";
+      return "<html><body><span style='color: #b3b3b3'>Nex: </span><span style='color:red'>Not Active</span></body></html>";
     }
   }
 }

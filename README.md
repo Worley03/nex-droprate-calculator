@@ -1,8 +1,10 @@
-# Nex Droprate Calculator
+# Nex Droprate Calculator ![icon](https://github.com/user-attachments/assets/41841644-2e01-4a64-a2c0-3cf5a7527e1f)
 This plugin monitors the players contribution to Nex fights and continuously calculates the roll for a unique drop.
 
-Overview of the monitored properties:
+![image](https://github.com/user-attachments/assets/e4a91550-c4ba-40dd-8a01-9f27863302ed)
 
+
+Overview of the monitored properties:
 - Unique Chance: The percent chance to receive an unique drop.
 - Unique Roll: The roll that is made to receive an unique drop.
 - Contribution Per.: The percent of the damage you have contributed to the fight.
@@ -17,3 +19,5 @@ In the average section, runs that were not canceled are calculated together to r
 - MVP Total: The total times the player was MVP.
 - Runs/hr: A rough estimate how many runs you can do per hour, excluding banking and restock time, but includes respawn time.
 - Uniques Chance/hr: Based on Runs/hr and average unique chance.
+
+- ![image](https://github.com/user-attachments/assets/9042d1d1-464c-46b0-ae7d-ba8e26433335)

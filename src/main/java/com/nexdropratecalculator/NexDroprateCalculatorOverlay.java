@@ -65,8 +65,15 @@ public class NexDroprateCalculatorOverlay extends OverlayPanel {
         if (currentRun.getRunState() != -1) {
 
             String playersValue = String.valueOf(playersCount); // Convert playersCount to String
-            String[] dropRate = {(fraction(currentRun.getRunUniqueChanceRoll())), percent(currentRun.getRunContributionPercent()), playersValue};
+            double threshold = 100.0 / playersCount;  // Calculate the threshold (100 / player count)
+            double contributionPercent = currentRun.getRunContributionPercent();  // Get the contribution percent
+
+// Convert necessary values to String
+            String[] dropRate = {fraction(currentRun.getRunUniqueChanceRoll()), percent(contributionPercent), playersValue};
             String[] type = {"Drop Rate:", "Contribution:", "Players:"};
+
+// Determine the color for the contribution text
+            Color contributionColor = contributionPercent > threshold ? Color.GREEN : Color.RED;
 
             panelComponent.getChildren().add(TitleComponent.builder()
                     .text("Nex Calculator")
@@ -74,14 +81,19 @@ public class NexDroprateCalculatorOverlay extends OverlayPanel {
                     .build());
 
             for (int i = 0; i < dropRate.length; i++) {
+                Color leftColor = Color.WHITE;  // Default left color
+                Color rightColor = (i == 1) ? contributionColor : Color.WHITE;  // Apply the color logic to "Contribution" text only
+
                 panelComponent.getChildren().add(LineComponent.builder()
                         .left(type[i])
                         .right(dropRate[i])
-                        .leftColor(Color.WHITE)
-                        .rightColor(Color.WHITE)
+                        .leftColor(leftColor)
+                        .rightColor(rightColor)
                         .build());
             }
+
             return super.render(graphics);
+
         }
         return null; // Return null if the overlay should not be shown
     }

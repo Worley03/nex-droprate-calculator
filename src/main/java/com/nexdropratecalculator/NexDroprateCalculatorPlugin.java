@@ -38,6 +38,8 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   private int waitTicks = 0;
   private boolean dumpResults = false;
   private boolean AtNex = false;
+  private int ticksUntilOverlayRemoval = -1;  // Initialize to -1 to indicate it's not active
+
 
   @Override
   protected void startUp() throws Exception {
@@ -114,6 +116,8 @@ public class NexDroprateCalculatorPlugin extends Plugin {
       overlay.updateValues(ownContribution, totalContribution, players, isMVP, minContribution, 1);
       ownContribution = 0;
       totalContribution = 0;
+      // Reset the countdown if still in fight
+      ticksUntilOverlayRemoval = -1;  // Cancel countdown since we're in the fight
       return;
     }
 
@@ -123,8 +127,9 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     } else {
       if (dumpResults) {
         log.debug("Dumping results");
+        int players = (int) client.getPlayers().stream().count();
         panel.updateValues(0, 0, 0, isMVP, minContribution, 0);
-        overlay.updateValues(0, 0, 0, isMVP, minContribution, 0);
+        overlay.updateValues(0, 0, players, isMVP, minContribution, 0);
         dumpResults = false;
         inFightInit = false;
       }
@@ -132,14 +137,37 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
     if (inFight) {
       log.debug("Exiting fight");
+      int players = (int) client.getPlayers().stream().count();
+      panel.updateValues(0, 0, 0, false, false, -1);
+      overlay.updateValues(0, 0, players, false, false, -1);
+    }
+
+    // If fight has ended and countdown has not started yet
+    if (!inFight && ticksUntilOverlayRemoval == -1) {
+      ticksUntilOverlayRemoval = 50;  // Start 30-second countdown (50 game ticks)
+      log.debug("Fight ended, starting overlay removal countdown");
+    }
+
+    // If the countdown is active, decrement the timer
+    if (ticksUntilOverlayRemoval > 0) {
+      ticksUntilOverlayRemoval--;
+      log.debug("Overlay removal countdown: {} ticks remaining", ticksUntilOverlayRemoval);
+    }
+
+    // Once the countdown reaches 0, remove the overlay
+    if (ticksUntilOverlayRemoval == 0) {
+      log.debug("30 seconds passed, removing overlay");
+      overlayManager.remove(overlay);  // Remove overlay after 30 seconds
       panel.updateValues(0, 0, 0, false, false, -1);
       overlay.updateValues(0, 0, 0, false, false, -1);
+      AtNex = false;  // Reset AtNex status
+      ticksUntilOverlayRemoval = -1;  // Reset countdown
     }
+
+    // Reset fight status
     inFight = false;
     inFightInit = false;
-    AtNex = false;
   }
-
 
   @Subscribe
   public void onChatMessage(ChatMessage chatMessage) {

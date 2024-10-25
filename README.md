@@ -6,7 +6,7 @@ This plugin monitors the players contribution to Nex fights and continuously cal
 Calculates and tracks:
 - Unique Chance %: The percent chance to receive an unique drop.
 - Unique Roll: The roll that is made to receive an unique drop.
-- Combine Unique Roll: The number of kills divided by average unique roll.
+- Combined Unique Roll: The number of kills divided by average unique roll.
 - Contribution %: The percent of the damage you have contributed to the fight. Green is above average, red is below.
 - Contribution Flat: The damage you have contributed to the fight and the total damage that was made by all players.
 - Contribution Minimum: Indicates if enough damage was contributed to receive at least a normal drop.

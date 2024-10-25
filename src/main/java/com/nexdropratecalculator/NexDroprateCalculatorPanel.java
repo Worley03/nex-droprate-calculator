@@ -221,7 +221,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     }
 
     JLabel uniqueChanceLabel = (JLabel) runPanel.getComponent(1);
-    uniqueChanceLabel.setText(labelValue("Unique Chance", String.format("%.2f", currentRun.getRunUniqueChancePercent()) + "%"));
+    uniqueChanceLabel.setText(labelValue("Unique Chance", String.format("%.4f", currentRun.getRunUniqueChancePercent()) + "%"));
 
     JLabel uniqueRollLabel = (JLabel) runPanel.getComponent(2);
     uniqueRollLabel.setText(labelValue("Unique Roll", fraction(currentRun.getRunUniqueChanceRoll())));

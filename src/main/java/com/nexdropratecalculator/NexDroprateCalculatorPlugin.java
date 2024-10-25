@@ -53,6 +53,10 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
     clientToolbar.addNavigation(navButton);
 
+    if (config.showOverlay() && (AtNex)) {
+      overlayManager.add(overlay);
+    }
+
     log.debug("Nex Droprate Calculator Plugin started successfully");
   }
 

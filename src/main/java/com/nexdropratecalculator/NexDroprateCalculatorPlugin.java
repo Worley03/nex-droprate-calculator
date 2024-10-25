@@ -103,7 +103,10 @@ public class NexDroprateCalculatorPlugin extends Plugin {
         ownContribution = 0;
         totalContribution = 0;
         AtNex = true;
-        overlayManager.add(overlay);
+        if (config.showOverlay())
+        {
+          overlayManager.add(overlay);
+        }
       }
 
       int players = (int) client.getPlayers().stream().count();

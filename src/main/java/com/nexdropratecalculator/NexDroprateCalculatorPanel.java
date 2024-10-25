@@ -42,7 +42,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     uniqueRollLabel.setFont(font);
     runPanel.add(uniqueRollLabel);
 
-    JLabel contributionPercentLabel = new JLabel(labelValue("Contribution Per.", "0.0000%"));
+    JLabel contributionPercentLabel = new JLabel(labelValue("Contribution Per.", "0.0%"));
     contributionPercentLabel.setFont(font);
     runPanel.add(contributionPercentLabel);
 
@@ -87,7 +87,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     lastUniqueRollLabel.setFont(font);
     runPanel.add(lastUniqueRollLabel);
 
-    JLabel lastContributionPercentLabel = new JLabel(labelValue("Contribution Per.", "0.0000%"));
+    JLabel lastContributionPercentLabel = new JLabel(labelValue("Contribution Per.", "0.0%"));
     lastContributionPercentLabel.setFont(font);
     runPanel.add(lastContributionPercentLabel);
 
@@ -132,7 +132,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     averageUniqueRollLabel.setFont(font);
     runPanel.add(averageUniqueRollLabel);
 
-    JLabel averageContributionPercentLabel = new JLabel(labelValue("Contribution Per.", "0.0000%"));
+    JLabel averageContributionPercentLabel = new JLabel(labelValue("Contribution Per.", "0.0%"));
     averageContributionPercentLabel.setFont(font);
     runPanel.add(averageContributionPercentLabel);
 
@@ -167,6 +167,10 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     JLabel uniqueChancePerHourLabel = new JLabel(labelValue("Unique Chance / hr", "0.0000%"));
     uniqueChancePerHourLabel.setFont(font);
     runPanel.add(uniqueChancePerHourLabel);
+
+    JLabel uniqueRollCombined = new JLabel(labelValue("Combined Unique Roll", "N/A"));
+    uniqueRollCombined.setFont(font);
+    runPanel.add(uniqueRollCombined);
 
     JLabel averageEmptyLabel = new JLabel(labelEmpty());
     averageEmptyLabel.setFont(font);
@@ -217,13 +221,13 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     }
 
     JLabel uniqueChanceLabel = (JLabel) runPanel.getComponent(1);
-    uniqueChanceLabel.setText(labelValue("Unique Chance", String.format("%.4f", currentRun.getRunUniqueChancePercent()) + "%"));
+    uniqueChanceLabel.setText(labelValue("Unique Chance", String.format("%.2f", currentRun.getRunUniqueChancePercent()) + "%"));
 
     JLabel uniqueRollLabel = (JLabel) runPanel.getComponent(2);
     uniqueRollLabel.setText(labelValue("Unique Roll", fraction(currentRun.getRunUniqueChanceRoll())));
 
     JLabel contributionPercentLabel = (JLabel) runPanel.getComponent(3);
-    contributionPercentLabel.setText(labelValue("Contribution Per.", String.format("%.4f", currentRun.getRunContributionPercent()) + "%"));
+    contributionPercentLabel.setText(labelValue("Contribution Per.", String.format("%.2f", currentRun.getRunContributionPercent()) + "%"));
 
     JLabel contributionFlatLabel = (JLabel) runPanel.getComponent(4);
     contributionFlatLabel.setText(labelValue("Contribution Flat", currentRun.getRunContributionFlatOwn() + "/" + currentRun.getRunContributionFlatTotal()));
@@ -251,7 +255,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     lastUniqueRollLabel.setText(labelValue("Unique Roll", fraction(lastRun.getRunUniqueChanceRoll())));
 
     JLabel lastContributionPercentLabel = (JLabel) runPanel.getComponent(14);
-    lastContributionPercentLabel.setText(labelValue("Contribution Per.", String.format("%.4f", lastRun.getRunContributionPercent()) + "%"));
+    lastContributionPercentLabel.setText(labelValue("Contribution Per.", String.format("%.2f", lastRun.getRunContributionPercent()) + "%"));
 
     JLabel lastContributionFlatLabel = (JLabel) runPanel.getComponent(15);
     lastContributionFlatLabel.setText(labelValue("Contribution Flat", lastRun.getRunContributionFlatOwn() + "/" + lastRun.getRunContributionFlatTotal()));
@@ -279,10 +283,10 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     averageUniqueRollLabel.setText(labelValue("Unique Roll", fraction(averageRun.getRunAverageUniqueChanceRoll())));
 
     JLabel averageContributionPercentLabel = (JLabel) runPanel.getComponent(25);
-    averageContributionPercentLabel.setText(labelValue("Contribution Per.", String.format("%.4f", averageRun.getRunAverageContributionPercent()) + "%"));
+    averageContributionPercentLabel.setText(labelValue("Contribution Per.", String.format("%.2f", averageRun.getRunAverageContributionPercent()) + "%"));
 
     JLabel averageContributionFlatLabel = (JLabel) runPanel.getComponent(26);
-    averageContributionFlatLabel.setText(labelValue("Contribution Flat", averageRun.getRunAverageContributionFlatOwn() + "/" + averageRun.getRunContributionFlatTotal()));
+    averageContributionFlatLabel.setText(labelValue("Contribution Flat", averageRun.getRunAverageContributionFlatOwn() + "/" + averageRun.getRunAverageContributionFlatOwn()));
 
     JLabel averageContributionMinLabel = (JLabel) runPanel.getComponent(27);
     averageContributionMinLabel.setText(labelValue("Contribution Min.", String.valueOf(averageRun.getRunAverageContributionMinimumDamageTotal())));
@@ -304,6 +308,15 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
 
     JLabel uniqueChancePerHourLabel = (JLabel) runPanel.getComponent(33);
     uniqueChancePerHourLabel.setText(labelValue("Unique Chance / hr", String.format("%.4f", averageRun.getRunAverageUniqueChancePercentPerHour()) + "%"));
+
+
+    JLabel uniqueRollCombined = (JLabel) runPanel.getComponent(34);
+    int total = averageRun.getRunAverageTotal();
+    if (total != 0) {
+      uniqueRollCombined.setText(labelValue("Combined Unique Roll", String.format(fraction(averageRun.getRunAverageUniqueChanceRoll() / total)) + "%"));
+    } else {
+      uniqueRollCombined.setText(labelValue("Combined Unique Roll", "N/A"));
+    }
   }
 
   void RestButtonUpdate() {
@@ -317,7 +330,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     averageUniqueRollLabel.setText(labelValue("Unique Roll", fraction(averageRun.getRunAverageUniqueChanceRoll())));
 
     JLabel averageContributionPercentLabel = (JLabel) runPanel.getComponent(25);
-    averageContributionPercentLabel.setText(labelValue("Contribution Per.", String.format("%.4f", averageRun.getRunAverageContributionPercent()) + "%"));
+    averageContributionPercentLabel.setText(labelValue("Contribution Per.", String.format("%.2f", averageRun.getRunAverageContributionPercent()) + "%"));
 
     JLabel averageContributionFlatLabel = (JLabel) runPanel.getComponent(26);
     averageContributionFlatLabel.setText(labelValue("Contribution Flat", averageRun.getRunAverageContributionFlatOwn() + "/" + averageRun.getRunContributionFlatTotal()));
@@ -342,6 +355,14 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
 
     JLabel uniqueChancePerHourLabel = (JLabel) runPanel.getComponent(33);
     uniqueChancePerHourLabel.setText(labelValue("Unique Chance / hr", String.format("%.4f", averageRun.getRunAverageUniqueChancePercentPerHour()) + "%"));
+
+    JLabel uniqueRollCombined = (JLabel) runPanel.getComponent(34);
+    int total = averageRun.getRunAverageTotal();
+    if (total != 0) {
+      uniqueRollCombined.setText(labelValue("Combined Unique Roll", String.format(fraction(averageRun.getRunAverageUniqueChanceRoll() / total)) + "%"));
+    } else {
+      uniqueRollCombined.setText(labelValue("Combined Unique Roll", "N/A"));
+    }
   }
 
   private String labelTitle(String title) {
@@ -383,4 +404,5 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     int denominator = (value);
     return "1/" + denominator;
   }
+
 }

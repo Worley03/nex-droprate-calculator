@@ -286,7 +286,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     averageContributionPercentLabel.setText(labelValue("Contribution Per.", String.format("%.2f", averageRun.getRunAverageContributionPercent()) + "%"));
 
     JLabel averageContributionFlatLabel = (JLabel) runPanel.getComponent(26);
-    averageContributionFlatLabel.setText(labelValue("Contribution Flat", averageRun.getRunAverageContributionFlatOwn() + "/" + averageRun.getRunAverageContributionFlatOwn()));
+    averageContributionFlatLabel.setText(labelValue("Contribution Flat", averageRun.getRunAverageContributionFlatOwn() + "/" + averageRun.getRunAverageContributionFlatTotal()));
 
     JLabel averageContributionMinLabel = (JLabel) runPanel.getComponent(27);
     averageContributionMinLabel.setText(labelValue("Contribution Min.", String.valueOf(averageRun.getRunAverageContributionMinimumDamageTotal())));

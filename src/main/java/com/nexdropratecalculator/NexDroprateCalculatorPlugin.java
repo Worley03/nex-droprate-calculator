@@ -71,7 +71,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
   @Subscribe
   public void onConfigChanged(ConfigChanged event) {
-    if (event.getKey().equals("showOverlay")) {
+    if (event.getGroup().equals("nex-droprate-calculator") && (event.getKey().equals("showOverlay"))) {
       if (config.showOverlay() && (AtNex))
       {
         overlayManager.add(overlay);
@@ -83,10 +83,6 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
   @Subscribe
   public void onGameTick(GameTick tick) {
-    if (config.showOverlay() && (AtNex))
-    {
-      overlayManager.add(overlay);
-    }
 
     NPC nex = client.getNpcs().stream()
             .filter(npc -> npc.getId() >= 11278 && npc.getId() <= 11282)

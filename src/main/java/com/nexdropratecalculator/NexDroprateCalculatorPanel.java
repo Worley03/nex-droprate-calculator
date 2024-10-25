@@ -42,7 +42,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     uniqueRollLabel.setFont(font);
     runPanel.add(uniqueRollLabel);
 
-    JLabel contributionPercentLabel = new JLabel(labelValue("Contribution Per.", "0.0%"));
+    JLabel contributionPercentLabel = new JLabel(labelValue("Contribution Per.", "0.00%"));
     contributionPercentLabel.setFont(font);
     runPanel.add(contributionPercentLabel);
 
@@ -87,7 +87,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     lastUniqueRollLabel.setFont(font);
     runPanel.add(lastUniqueRollLabel);
 
-    JLabel lastContributionPercentLabel = new JLabel(labelValue("Contribution Per.", "0.0%"));
+    JLabel lastContributionPercentLabel = new JLabel(labelValue("Contribution Per.", "0.00%"));
     lastContributionPercentLabel.setFont(font);
     runPanel.add(lastContributionPercentLabel);
 
@@ -132,7 +132,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     averageUniqueRollLabel.setFont(font);
     runPanel.add(averageUniqueRollLabel);
 
-    JLabel averageContributionPercentLabel = new JLabel(labelValue("Contribution Per.", "0.0%"));
+    JLabel averageContributionPercentLabel = new JLabel(labelValue("Contribution Per.", "0.00%"));
     averageContributionPercentLabel.setFont(font);
     runPanel.add(averageContributionPercentLabel);
 

@@ -3,7 +3,7 @@ This plugin monitors the players contribution to Nex fights and continuously cal
 
 ![image](https://github.com/user-attachments/assets/96457841-366c-4f5f-82ed-2bab99a358a5)
 
-Calculates and tracks:
+**Calculates and Tracks:**
 - Unique Chance %: The percent chance to receive an unique drop.
 - Unique Roll: The roll that is made to receive an unique drop.
 - Combined Unique Roll: The number of kills divided by average unique roll.

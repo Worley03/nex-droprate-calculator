@@ -309,14 +309,14 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     JLabel uniqueChancePerHourLabel = (JLabel) runPanel.getComponent(33);
     uniqueChancePerHourLabel.setText(labelValue("Unique Chance / hr", String.format("%.4f", averageRun.getRunAverageUniqueChancePercentPerHour()) + "%"));
 
-
     JLabel uniqueRollCombined = (JLabel) runPanel.getComponent(34);
     int total = averageRun.getRunAverageTotal();
     if (total != 0) {
       uniqueRollCombined.setText(labelValue("Combined Unique Roll", String.format(fraction(averageRun.getRunAverageUniqueChanceRoll() / total)) + "%"));
     } else {
-      uniqueRollCombined.setText(labelValue("Combined Unique Roll", "N/A"));
+      uniqueRollCombined.setText(labelValue("Combined Unique Roll", "N/A"));  // Or any appropriate fallback message
     }
+
   }
 
   void RestButtonUpdate() {
@@ -361,7 +361,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     if (total != 0) {
       uniqueRollCombined.setText(labelValue("Combined Unique Roll", String.format(fraction(averageRun.getRunAverageUniqueChanceRoll() / total)) + "%"));
     } else {
-      uniqueRollCombined.setText(labelValue("Combined Unique Roll", "N/A"));
+      uniqueRollCombined.setText(labelValue("Combined Unique Roll", "N/A"));  // Or any appropriate fallback message
     }
   }
 
@@ -404,5 +404,4 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     int denominator = (value);
     return "1/" + denominator;
   }
-
 }

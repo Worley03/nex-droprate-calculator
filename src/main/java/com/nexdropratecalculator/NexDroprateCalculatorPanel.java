@@ -148,7 +148,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     averagePlayersLabel.setFont(font);
     runPanel.add(averagePlayersLabel);
 
-    JLabel averageMVPPercentLabel = new JLabel(labelValue("MVP Per.", "0.0000%"));
+    JLabel averageMVPPercentLabel = new JLabel(labelValue("MVP Per.", "0.00%"));
     averageMVPPercentLabel.setFont(font);
     runPanel.add(averageMVPPercentLabel);
 
@@ -295,7 +295,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     averagePlayersLabel.setText(labelValue("Players", String.format("%.2f", averageRun.getRunAveragePlayers())));
 
     JLabel averageMVPPercentLabel = (JLabel) runPanel.getComponent(29);
-    averageMVPPercentLabel.setText(labelValue("MVP Per.", String.format("%.4f", averageRun.getRunAverageIsMVPPercent()) + "%"));
+    averageMVPPercentLabel.setText(labelValue("MVP Per.", String.format("%.2f", (averageRun.getRunAverageIsMVPPercent()) * 100) + "%"));
 
     JLabel averageMVPTotalLabel = (JLabel) runPanel.getComponent(30);
     averageMVPTotalLabel.setText(labelValue("MVP Total", String.valueOf(averageRun.getRunAverageIsMVPTotal())));
@@ -342,7 +342,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     averagePlayersLabel.setText(labelValue("Players", String.format("%.2f", averageRun.getRunAveragePlayers())));
 
     JLabel averageMVPPercentLabel = (JLabel) runPanel.getComponent(29);
-    averageMVPPercentLabel.setText(labelValue("MVP Per.", String.format("%.4f", averageRun.getRunAverageIsMVPPercent()) + "%"));
+    averageMVPPercentLabel.setText(labelValue("MVP Per.", String.format("%.2f", (averageRun.getRunAverageIsMVPPercent()) * 100) + "%"));
 
     JLabel averageMVPTotalLabel = (JLabel) runPanel.getComponent(30);
     averageMVPTotalLabel.setText(labelValue("MVP Total", String.valueOf(averageRun.getRunAverageIsMVPTotal())));

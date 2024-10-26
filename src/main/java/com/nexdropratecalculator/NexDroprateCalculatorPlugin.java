@@ -198,8 +198,10 @@ public class NexDroprateCalculatorPlugin extends Plugin {
           log.debug("Hitsplat applied to me: {}", hitsplat.getAmount());
           ownContribution += hitsplat.getAmount();
         }
-        totalContribution += hitsplat.getAmount();
-        log.debug("Total contribution updated: {}", totalContribution);
+        if (hitsplat.getHitsplatType() != HitsplatID.HEAL) {
+          totalContribution += hitsplat.getAmount();
+          log.debug("Total contribution updated: {}", totalContribution);
+        }
       }
     }
   }

@@ -233,13 +233,13 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     stateLabel.setText(labelState(currentRun.getRunState()));
 
     // Last run
-    JLabel lastUniqueChanceLabel = (JLabel) runPanel.getComponent(10);
+    JLabel lastUniqueChanceLabel = (JLabel) runPanel.getComponent(11);
     lastUniqueChanceLabel.setText(labelValue("Unique Chance", String.format("%.4f", lastRun.getRunUniqueChancePercent()) + "%"));
 
-    JLabel lastUniqueRollLabel = (JLabel) runPanel.getComponent(11);
+    JLabel lastUniqueRollLabel = (JLabel) runPanel.getComponent(12);
     lastUniqueRollLabel.setText(labelValue("Unique Roll", fraction(lastRun.getRunUniqueChanceRoll())));
 
-    JLabel lastContributionPercentLabel = (JLabel) runPanel.getComponent(12);
+    JLabel lastContributionPercentLabel = (JLabel) runPanel.getComponent(13);
     lastContributionPercentLabel.setText(labelValue("Contribution", String.format("%.2f", lastRun.getRunContributionPercent()) + "%"));
 
     JLabel lastContributionFlatLabel = (JLabel) runPanel.getComponent(14);

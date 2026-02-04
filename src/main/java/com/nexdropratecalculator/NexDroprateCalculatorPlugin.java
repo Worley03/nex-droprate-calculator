@@ -81,7 +81,10 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
   @Subscribe
   public void onConfigChanged(ConfigChanged event) {
-    if (event.getGroup().equals("nex-droprate-calculator") && (event.getKey().equals("showOverlay"))) {
+    if (!event.getGroup().equals(NexDroprateCalculatorConfig.GROUP)) {
+      return;
+    }
+    if (event.getKey().equals(NexDroprateCalculatorConfig.SHOW_OVERLAY)) {
       if (config.showOverlay() && isInFight()) {
         overlayManager.add(overlay);
       } else {

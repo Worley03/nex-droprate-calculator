@@ -4,13 +4,16 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-
-@ConfigGroup("nex-droprate-calculator")
+@ConfigGroup(NexDroprateCalculatorConfig.GROUP)
 public interface NexDroprateCalculatorConfig extends Config {
+    String GROUP = "nex-droprate-calculator";
+
+    String SHOW_OVERLAY = "showOverlay";
+    String DROP_RATE = "DropRate";
 
     @ConfigItem(
             position = 1,
-            keyName = "showOverlay",
+            keyName = SHOW_OVERLAY,
             name = "Show Overlay",
             description = "Toggle overlay"
     )
@@ -20,7 +23,7 @@ public interface NexDroprateCalculatorConfig extends Config {
 
     @ConfigItem(
             position = 2,
-            keyName = "DropRate",
+            keyName = DROP_RATE,
             name = "Increase Drop Rate",
             description = "Only works if you believe!"
     )

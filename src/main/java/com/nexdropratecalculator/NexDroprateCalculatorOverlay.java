@@ -15,42 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class NexDroprateCalculatorOverlay extends OverlayPanel {
-    public NexDroprateCalculatorRun currentRun = new NexDroprateCalculatorRun();
+    public NexDroprateCalculatorRun currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.NOT_STARTED);
     private final NexDroprateCalculatorPlugin plugin;
-    private int playersCount = 0;
-
-    void updateValues(
-            int ownContribution,
-            int totalContribution,
-            int players,
-            boolean isMVP,
-            boolean minContribution,
-            int state) {
-
-        this.playersCount = players;
-
-        if (state == 1 && currentRun.getRunState() == 1) {
-            // Collecting current run information
-            currentRun.updateRun(
-                    ownContribution, totalContribution, players, isMVP, minContribution, false, false);
-            currentRun.setRunState(state);
-        } else if (state == 1 && currentRun.getRunState() != 1) {
-            // New run starts
-            if (currentRun.getRunState() == 0);
-            currentRun.reset();
-            currentRun.updateRun(
-                    ownContribution, totalContribution, players, isMVP, minContribution, true, false);
-            currentRun.setRunState(state);
-        } else if (state == 0 && currentRun.getRunState() == 1) {
-            // Current run finished
-            currentRun.updateRun(
-                    ownContribution, totalContribution, players, isMVP, minContribution, false, true);
-            currentRun.setRunState(state);
-        } else if (state == -1 && currentRun.getRunState() == 1) {
-            // Current run canceled
-            currentRun.setRunState(state);
-        }
-    }
 
     @Inject
     public NexDroprateCalculatorOverlay(NexDroprateCalculatorPlugin plugin) {
@@ -60,19 +26,25 @@ public class NexDroprateCalculatorOverlay extends OverlayPanel {
         addMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Nex Droprate Calculator Overlay");
     }
 
+    // TODO: This is temporary until I figure out to deduplicate currentRun and use the same data between panel and overlay
+    public void startCurrentRun(int playerCount) {
+        this.currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.STARTING);
+        this.currentRun.runPlayersMin = playerCount;
+        this.currentRun.runPlayersMax = playerCount;
+    }
+
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (currentRun.getRunState() != -1) {
-
-            String playersValue = String.valueOf(playersCount); // Convert playersCount to String
-            double threshold = 100.0 / playersCount;  // Calculate the threshold (100 / player count)
+        if (currentRun.getRunState() != Utils.RUN_STATES.CANCELLED || true) { // TODO: For now ignore the if statement, probably drop it later
+            String playersValue = String.valueOf(currentRun.runPlayers); // Convert playersCount to String
+            double threshold = 100.0 / currentRun.runPlayers;  // Calculate the threshold (100 / player count)
             double contributionPercent = currentRun.getRunContributionPercent();  // Get the contribution percent
 
-// Convert necessary values to String
-            String[] dropRate = {fraction(currentRun.getRunUniqueChanceRoll()), percent(contributionPercent), playersValue};
+            // Convert necessary values to String
+            String[] dropRate = {Utils.fraction(currentRun.getRunUniqueChanceRoll()), Utils.percent(contributionPercent), playersValue};
             String[] type = {"Drop Rate:", "Contribution:", "Players:"};
 
-// Determine the color for the contribution text
+            // Determine the color for the contribution text
             Color contributionColor = contributionPercent > threshold ? Color.GREEN : Color.RED;
 
             panelComponent.getChildren().add(TitleComponent.builder()
@@ -93,20 +65,7 @@ public class NexDroprateCalculatorOverlay extends OverlayPanel {
             }
 
             return super.render(graphics);
-
         }
         return null; // Return null if the overlay should not be shown
-    }
-
-    private String percent(double value) {
-        return String.format("%.1f%%", value);
-    }
-
-    private String fraction(int value) {
-        if (value == 0) {
-            return "N/A";
-        }
-        int denominator = (value);
-        return "1/" + denominator;
     }
 }

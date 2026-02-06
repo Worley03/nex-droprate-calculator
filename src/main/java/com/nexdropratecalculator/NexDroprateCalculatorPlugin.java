@@ -33,10 +33,8 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   @Inject private NexDroprateCalculatorOverlay overlay;
   @Inject private NexDroprateCalculatorConfig config;
 
-  private int ownContribution = 0;
-  private int totalContribution = 0;
-  private boolean isMVP = false;              // Whether player is deemed MVP of the finished fight (updated at the end of the fight)
-  private boolean minContribution = false;    // Whether player qualifies for minimal contribution (updated at the end of the fight)
+  private int ownContribution = 0;            // Value of own damage splats (resets each tick during the fight)
+  private int totalContribution = 0;          // Value of all damage splats (resets each tick during the fight)
   private int ticksUntilDumpResults = -1;     // Time in ticks until dumping fight results
   private int ticksUntilOverlayRemoval = -1;  // Time in ticks until hiding overlay
   private int lastNexStatus = 0;              // Default value of VarbitID.NEX_BARRIER
@@ -57,7 +55,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
     clientToolbar.addNavigation(navButton);
 
-    clientThread.invoke(() -> {
+    clientThread.invokeLater(() -> {
       if (config.showOverlay() && isInFight()) {
         overlayManager.add(overlay);
       }
@@ -98,24 +96,40 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     if (event.getVarbitId() == VarbitID.NEX_BARRIER) {
       int newStatus = event.getValue();
       log.debug("NEX_BARRIER changed: {} -> {}", lastNexStatus, newStatus);
-      if (newStatus == 3) {
-        // Player is within Nex's arena and Nex either just spawned or player joined during her spawn animation
-        log.debug("Initializing Nex fight");
-        isMVP = false;
-        minContribution = false;
-        ownContribution = 0;
-        totalContribution = 0;
-        // Schedule dump in 2 ticks // open question: should dump be scheduled on 3 -> 1 (player tp's out/dies)?
-        log.debug("Scheduling dump in 2 ticks");
-        ticksUntilDumpResults = 2;
-        if (config.showOverlay()) {
-          overlayManager.add(overlay);
+      // NOTE: It is possible that the varbit will change 0 -> 3 if player last logged out inside Nex's arena with Nex alive
+      // hence need for the non-zero check on previous value, otherwise overlay will show up for a few seconds on login in case of 0 -> 3
+      if (lastNexStatus != 0) {
+        if (newStatus == 3) {
+          // Player is within Nex's arena and Nex either just spawned (2 -> 3) or player joined during her spawn animation (1 -> 3)
+          // TODO: Implement differentiation between player actually starting the fight
+          //  e.g. filter out scenarios where player is still leaving but Nex already spawned
+          log.debug("Initializing Nex fight");
+          ownContribution = 0;
+          totalContribution = 0;
+          if (config.showOverlay()) {
+            overlayManager.add(overlay);
+          }
+          int playerCount = (int) client.getTopLevelWorldView().players().stream().count();
+
+          panel.startCurrentRun(playerCount);
+          overlay.startCurrentRun(playerCount);
+          //overlay.currentRun.updateRun(ownContribution, totalContribution, playerCount, isMVP, minContribution, Utils.RUN_STATES.STARTED);
+        } else if (lastNexStatus == 3 && newStatus == 2) {
+          // Nex just died (3 -> 2)
+          // Schedule dump in 2 ticks - we need to delay this to wait for onChatMessage handler which updates mvp & min contribution
+          log.debug("Scheduling finished Nex fight dump in 2 ticks");
+          ticksUntilDumpResults = 2;
+        } else if (newStatus == 1 || newStatus == 0) {
+          // Ignore 2 -> 1 and 2 -> 0 statuses since this usually means player is leaving after a finished fight
+          if (lastNexStatus != 2) {
+            // Either player left arena while Nex was alive (3 -> 1), player left arena while she was dead (2 -> 1) or player logged out (X -> 0)
+            // Cancel fight status immediately
+            panel.finishCurrentRun(Utils.RUN_STATES.CANCELLED);
+            // Schedule overlay removal in 50 ticks (30 seconds)
+            log.debug("Player left Nex fight, scheduling overlay removal in 50 ticks");
+            ticksUntilOverlayRemoval = 50;
+          }
         }
-      } else if (lastNexStatus == 3 && (newStatus == 2 || newStatus == 1)) {
-        // Either Nex just died (3 -> 2) or player left arena while Nex was alive (3 -> 1)
-        // Schedule overlay removal in 30 seconds
-        log.debug("Scheduling overlay removal in 50 ticks");
-        ticksUntilOverlayRemoval = 50;
       }
       // Store previous value of Nex's status
       lastNexStatus = event.getValue();
@@ -124,23 +138,25 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
   @Subscribe
   public void onGameTick(GameTick tick) {
+    // Player is currently in a Nex fight - update data of the ongoing fight each game tick
     if (isInFight()) {
       int playerCount = (int) client.getTopLevelWorldView().players().stream().count();
-      panel.updateValues(ownContribution, totalContribution, playerCount, isMVP, minContribution, 1);
-      overlay.updateValues(ownContribution, totalContribution, playerCount, isMVP, minContribution, 1);
+      panel.updateCurrentRun(ownContribution, totalContribution, playerCount);
+      overlay.currentRun.updateRun(ownContribution, totalContribution, playerCount);
+      // Reset tick contributions
       ownContribution = 0;
       totalContribution = 0;
       ticksUntilOverlayRemoval = -1; // Cancel countdown since we're in the fight
       return;
     }
 
-    // Player is not in a fight - delay executions by decrementing values until they reach 0
+    // Player is not in a Nex fight - delay executions by decrementing values until they reach 0
     if (ticksUntilDumpResults > -1) {
       if (ticksUntilDumpResults == 0) {
-        log.debug("Dumping Nex fight results");
+        log.debug("Dumping finished Nex fight results");
         int playerCount = (int) client.getTopLevelWorldView().players().stream().count();
-        panel.updateValues(0, 0, 0, isMVP, minContribution, 0);
-        overlay.updateValues(0, 0, playerCount, isMVP, minContribution, 0);
+        panel.finishCurrentRun(Utils.RUN_STATES.FINISHED);
+        overlay.currentRun.updateRun(0, 0, playerCount);
       }
       ticksUntilDumpResults--;
     }
@@ -148,9 +164,8 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     if (ticksUntilOverlayRemoval > -1) {
       if (ticksUntilOverlayRemoval == 0) {
         log.debug("30 seconds passed since leaving Nex, removing overlay");
+        //overlay.currentRun.updateRun(0, 0, 0); // probably unnecessary since we're removing the overlay anyway
         overlayManager.remove(overlay);
-        panel.updateValues(0, 0, 0, false, false, -1);
-        overlay.updateValues(0, 0, 0, false, false, -1);
       }
       ticksUntilOverlayRemoval--;
     }
@@ -160,13 +175,13 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   public void onChatMessage(ChatMessage chatMessage) {
     if (chatMessage.getType() == ChatMessageType.GAMEMESSAGE) {
       if (chatMessage.getMessage().equals("You were the MVP for this fight!")) {
-        isMVP = true;
+        panel.setCurrentRunMvp(true);
         log.debug("Nex MVP message detected");
       }
       // Checking for Nex-specific drop message ensures we don't faultily assume player qualifying
       // for minimal contribution in the event of someone in the arena receiving a unique drop
       if (chatMessage.getMessage().startsWith("<col=ef0083>Nex dropped:")) {
-        minContribution = true;
+        panel.setCurrentRunMinimumContribution(true);
         log.debug("Nex drop message detected");
       }
     }
@@ -179,11 +194,11 @@ public class NexDroprateCalculatorPlugin extends Plugin {
         Hitsplat hitsplat = hitsplatApplied.getHitsplat();
         if (hitsplat.isMine()) {
           ownContribution += hitsplat.getAmount();
-          log.debug("Hitsplat applied to me: {}", hitsplat.getAmount());
+          //log.debug("Hitsplat applied to me: {}", hitsplat.getAmount()); // very spammy
         }
         if (hitsplat.getHitsplatType() != HitsplatID.HEAL) {
           totalContribution += hitsplat.getAmount();
-          log.debug("Total contribution updated: {}", totalContribution);
+          //log.debug("Total contribution updated: {}", totalContribution); // very spammy
         }
       }
     }

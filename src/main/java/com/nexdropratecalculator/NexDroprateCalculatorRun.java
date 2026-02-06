@@ -17,7 +17,6 @@ public class NexDroprateCalculatorRun {
   public int runPlayersMax;
   public boolean runIsMVP;
   public int ticks;
-  public String time;
 
   public NexDroprateCalculatorRun(Utils.RUN_STATES stateToSet) {
     this.runState = stateToSet;
@@ -33,18 +32,10 @@ public class NexDroprateCalculatorRun {
     this.runPlayersMax = 0;
     this.runIsMVP = false;
     this.ticks = 0;
-    this.time = "00h 00m 00s";
   }
 
   public void updateRun(int ownContribution, int totalContribution, int players) {
     ticks++;
-
-    // TODO: Move time calculation to a utility function
-    int secondsTotal = (int) Math.ceil((double) ticks * 0.6);
-    int seconds = secondsTotal % 60;
-    int minutes = (int) Math.floor((double) secondsTotal / 60.0);
-    int hours = (int) Math.floor((double) secondsTotal / 3600.0);
-    time = String.format("%02dh %02dm %02ds", hours, minutes, seconds);
 
     // Update minimum & maximum players accordingly
     // TODO: Max players value can only increase while players are joining
@@ -85,6 +76,5 @@ public class NexDroprateCalculatorRun {
     runPlayersMax = run.getRunPlayersMax();
     runIsMVP = run.isRunIsMVP();
     ticks = run.getTicks();
-    time = run.getTime();
   }
 }

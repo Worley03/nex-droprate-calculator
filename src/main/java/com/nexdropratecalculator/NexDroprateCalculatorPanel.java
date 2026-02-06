@@ -25,7 +25,6 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
   private int runAverageIsMVPTotal = 0;
   private double runAverageIsMVPPercent = 0;
   private int runAverageTicks = 0;
-  private String runAverageTime = "00h 00m 00s";
   private double runAverageRunsPerHour = 0;
   private double runAverageUniqueChancePercentPerHour = 0;
 
@@ -229,7 +228,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     contributionFlatLabel.setText(labelValue("Damage", currentRun.getRunContributionFlatOwn() + "/" + currentRun.getRunContributionFlatTotal()));
     playersLabel.setText(labelValue("Players", String.format("%.2f", currentRun.getRunPlayers())));
     isMVPLabel.setText(labelValue("MVP", (currentRun.isRunIsMVP() ? "yes" : "no")));
-    timeLabel.setText(labelValue("Time", currentRun.getTime()));
+    timeLabel.setText(labelValue("Time", Utils.formatDuration(currentRun.getTicks())));
     stateLabel.setText(labelState(currentRun.getRunState()));
 
     // Last run
@@ -239,7 +238,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     lastContributionFlatLabel.setText(labelValue("Damage", lastRun.getRunContributionFlatOwn() + "/" + lastRun.getRunContributionFlatTotal()));
     lastPlayersLabel.setText(labelValue("Players", String.format("%.2f", lastRun.getRunPlayers())));
     lastIsMVPLabel.setText(labelValue("MVP", (lastRun.isRunIsMVP() ? "yes" : "no")));
-    lastTimeLabel.setText(labelValue("Time", lastRun.getTime()));
+    lastTimeLabel.setText(labelValue("Time", Utils.formatDuration(lastRun.getTicks())));
 
     // Average run
     this.updatePanelValuesAverage();
@@ -255,7 +254,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     averagePlayersLabel.setText(labelValue("Players", String.format("%.2f", this.runAveragePlayers)));
     averageMVPPercentLabel.setText(labelValue("MVP", String.format("%.2f", (this.runAverageIsMVPPercent) * 100) + "%"));
     averageMVPTotalLabel.setText(labelValue("MVP Total", String.valueOf(this.runAverageIsMVPTotal)));
-    averageTimeLabel.setText(labelValue("Time", this.runAverageTime));
+    averageTimeLabel.setText(labelValue("Time", Utils.formatDuration(this.runAverageTicks)));
     killsPerHourLabel.setText(labelValue("Kills / hr", String.format("%.2f", this.runAverageRunsPerHour)));
     uniqueChancePerHourLabel.setText(labelValue("Unique Chance / hr", String.format("%.4f", this.runAverageUniqueChancePercentPerHour) + "%"));
 
@@ -275,7 +274,6 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     this.runAverageIsMVPTotal = 0;
     this.runAverageIsMVPPercent = 0;
     this.runAverageTicks = 0;
-    this.runAverageTime = "00h 00m 00s";
     this.runAverageRunsPerHour = 0;
     this.runAverageUniqueChancePercentPerHour = 0;
     // Trigger values print manually
@@ -334,12 +332,6 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
             Math.round(
                     (((double) runAverageTicks * runAverageTotal) + (double) run.getTicks())
                             / (double) (runAverageTotal + 1));
-    int secondsTotal = (int) Math.ceil((double) runAverageTicks * 0.6);
-    int seconds = secondsTotal % 60;
-    int minutes = (int) Math.floor((double) secondsTotal / 60.0);
-    int hours = (int) Math.floor((double) secondsTotal / 3600.0);
-
-    runAverageTime = String.format("%02dh %02dm %02ds", hours, minutes, seconds);
 
     runAverageUniqueChancePercent =
             ((runAverageUniqueChancePercent * (double) runAverageTotal)

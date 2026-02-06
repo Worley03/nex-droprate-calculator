@@ -105,7 +105,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     timeLabel.setFont(font);
     runPanel.add(timeLabel);
 
-    stateLabel = new JLabel(labelState(this.currentRun.runState));
+    stateLabel = new JLabel(labelValue("State", this.currentRun.getRunState().toString()));
     stateLabel.setFont(font);
     runPanel.add(stateLabel);
 
@@ -229,7 +229,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     playersLabel.setText(labelValue("Players", String.format("%.2f", currentRun.getRunPlayers())));
     isMVPLabel.setText(labelValue("MVP", (currentRun.isRunIsMVP() ? "yes" : "no")));
     timeLabel.setText(labelValue("Time", Utils.formatDuration(currentRun.getTicks())));
-    stateLabel.setText(labelState(currentRun.getRunState()));
+    stateLabel.setText(labelValue("State", currentRun.getRunState().toString()));
 
     // Last run
     lastUniqueChanceLabel.setText(labelValue("Unique Chance", String.format("%.4f", lastRun.getRunUniqueChancePercent()) + "%"));
@@ -375,10 +375,6 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
 
   private String labelValue(String name, String value) {
     return "<html><div style='color:white;font-size:10px;'><b>" + name + ": </b>" + value + "</div></html>";
-  }
-
-  private String labelState(Utils.RUN_STATES state) {
-    return "<html><div style='color:white;font-size:10px;'><b>State: </b>" + state + "</div></html>";
   }
 
   private String labelEmpty() {

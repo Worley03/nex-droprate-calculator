@@ -13,7 +13,7 @@ import net.runelite.client.ui.PluginPanel;
 
 @Slf4j
 public class NexDroprateCalculatorPanel extends PluginPanel {
-  private NexDroprateCalculatorRun currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.NOT_STARTED);
+  protected NexDroprateCalculatorRun currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.NOT_STARTED);
   private NexDroprateCalculatorRun lastRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.NOT_STARTED);
   @Getter @Setter
   private boolean currentRunActive = false;
@@ -282,15 +282,14 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     this.runAverageRunsPerHour = 0;
     this.runAverageUniqueChancePercentPerHour = 0;
     // Trigger values print manually
-    this.updatePanelValues();
+    this.updatePanelValuesAverage();
   }
 
   // A new run started, initialize values
   public void startCurrentRun(int playerCount) {
     // Set what's currently stored at currentRun into lastRun, but only if that run was completed successfully
     if (this.currentRun.runState == Utils.RUN_STATES.FINISHED) {
-      // TODO: Is this method necessary? It's only used upon a run finish anyway (consider just replacing lastRun with currentRun)
-      this.lastRun.setFromRun(this.currentRun);
+      this.lastRun = this.currentRun;
     }
     this.currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.STARTED);
     this.currentRun.runPlayersMin = playerCount;

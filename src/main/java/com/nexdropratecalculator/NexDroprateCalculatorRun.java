@@ -61,20 +61,4 @@ public class NexDroprateCalculatorRun {
           ((double) runContributionFlatOwn / (double) runContributionFlatTotal) * 100.0;
     }
   }
-
-  public void setFromRun(NexDroprateCalculatorRun run) {
-    runState = run.getRunState();
-
-    runUniqueChancePercent = run.getRunUniqueChancePercent();
-    runUniqueChanceRoll = run.getRunUniqueChanceRoll();
-    runContributionPercent = run.getRunContributionPercent();
-    runContributionFlatOwn = run.getRunContributionFlatOwn();
-    runContributionFlatTotal = run.getRunContributionFlatTotal();
-    runMinimumContribution = run.isRunMinimumContribution();
-    runPlayers = run.getRunPlayers();
-    runPlayersMin = run.getRunPlayersMin();
-    runPlayersMax = run.getRunPlayersMax();
-    runIsMVP = run.isRunIsMVP();
-    ticks = run.getTicks();
-  }
 }

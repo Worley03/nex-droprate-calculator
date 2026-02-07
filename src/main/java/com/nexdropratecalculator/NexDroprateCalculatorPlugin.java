@@ -27,7 +27,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   @Inject private Client client;
   @Inject private ClientToolbar clientToolbar;
   @Inject private ClientThread clientThread;
-  private NexDroprateCalculatorPanel panel;
+  protected NexDroprateCalculatorPanel panel;
   private NavigationButton navButton;
   @Inject private OverlayManager overlayManager;
   @Inject private NexDroprateCalculatorOverlay overlay;
@@ -59,7 +59,6 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     int playerCount = (int) client.getTopLevelWorldView().players().stream().count();
 
     panel.startCurrentRun(playerCount);
-    overlay.startCurrentRun(playerCount);
   }
 
   @Override
@@ -145,7 +144,6 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     if (isNexAlive() && panel.isCurrentRunActive()) {
       int playerCount = (int) client.getTopLevelWorldView().players().stream().count();
       panel.updateCurrentRun(ownContribution, totalContribution, playerCount);
-      overlay.currentRun.updateRun(ownContribution, totalContribution, playerCount);
       // Reset tick contributions
       ownContribution = 0;
       totalContribution = 0;
@@ -156,9 +154,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     if (ticksUntilDumpResults > -1) {
       if (ticksUntilDumpResults == 0) {
         log.debug("Dumping finished Nex fight results");
-        int playerCount = (int) client.getTopLevelWorldView().players().stream().count();
         panel.finishCurrentRun(Utils.RUN_STATES.FINISHED);
-        overlay.currentRun.updateRun(0, 0, playerCount);
       }
       ticksUntilDumpResults--;
     }

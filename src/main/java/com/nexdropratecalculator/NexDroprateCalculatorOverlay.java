@@ -28,7 +28,7 @@ public class NexDroprateCalculatorOverlay extends OverlayPanel {
 
     // TODO: This is temporary until I figure out to deduplicate currentRun and use the same data between panel and overlay
     public void startCurrentRun(int playerCount) {
-        this.currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.STARTING);
+        this.currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.STARTED);
         this.currentRun.runPlayersMin = playerCount;
         this.currentRun.runPlayersMax = playerCount;
     }
@@ -36,9 +36,10 @@ public class NexDroprateCalculatorOverlay extends OverlayPanel {
     @Override
     public Dimension render(Graphics2D graphics) {
         if (currentRun.getRunState() != Utils.RUN_STATES.CANCELLED || true) { // TODO: For now ignore the if statement, probably drop it later
-            String playersValue = String.valueOf(currentRun.runPlayers); // Convert playersCount to String
-            double threshold = 100.0 / currentRun.runPlayers;  // Calculate the threshold (100 / player count)
-            double contributionPercent = currentRun.getRunContributionPercent();  // Get the contribution percent
+            // TODO: Implement better way of displaying players (account for players leaving mid-kill)
+            String playersValue = String.valueOf(currentRun.runPlayersMin);
+            double threshold = 100.0 / currentRun.runPlayersMin; // Calculate the threshold that determines qualifying for equal damage / mvp
+            double contributionPercent = currentRun.getRunContributionPercent(); // Get the contribution percent
 
             // Convert necessary values to String
             String[] dropRate = {Utils.fraction(currentRun.getRunUniqueChanceRoll()), Utils.percent(contributionPercent), playersValue};

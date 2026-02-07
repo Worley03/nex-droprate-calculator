@@ -3,6 +3,9 @@ package com.nexdropratecalculator;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
@@ -12,6 +15,8 @@ import net.runelite.client.ui.PluginPanel;
 public class NexDroprateCalculatorPanel extends PluginPanel {
   private NexDroprateCalculatorRun currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.NOT_STARTED);
   private NexDroprateCalculatorRun lastRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.NOT_STARTED);
+  @Getter @Setter
+  private boolean currentRunActive = false;
 
   // TODO: Consider moving the logic from here to a separate class for run averages
   private int runAverageTotal = 0;
@@ -282,7 +287,12 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
 
   // A new run started, initialize values
   public void startCurrentRun(int playerCount) {
-    this.currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.STARTING);
+    // Set what's currently stored at currentRun into lastRun, but only if that run was completed successfully
+    if (this.currentRun.runState == Utils.RUN_STATES.FINISHED) {
+      // TODO: Is this method necessary? It's only used upon a run finish anyway (consider just replacing lastRun with currentRun)
+      this.lastRun.setFromRun(this.currentRun);
+    }
+    this.currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.STARTED);
     this.currentRun.runPlayersMin = playerCount;
     this.currentRun.runPlayersMax = playerCount;
     this.updatePanelValues();
@@ -296,7 +306,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
 
   // Current run either just finished or was cancelled (due to player leaving/dying)
   public void finishCurrentRun(Utils.RUN_STATES finishReason) {
-    this.currentRun.runState = finishReason;
+    this.setCurrentRunActive(false);
 
     if (finishReason == Utils.RUN_STATES.FINISHED) {
       // Current run finished successfully
@@ -308,12 +318,13 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
         this.currentRun.runUniqueChancePercent = (1.0 / (double) this.currentRun.runUniqueChanceRoll) * 100.0;
       }
       // update average run values from currentRun
+      this.currentRun.runState = finishReason;
       this.addCurrentRunToAverages();
-      this.lastRun.setFromRun(this.currentRun); // TODO: Is this method necessary? It's only used upon a run finish anyway (consider just replacing lastRun with currentRun)
-      this.currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.NOT_STARTED);
-    } else if (finishReason == Utils.RUN_STATES.CANCELLED) {
-      // Player has left before the fight has finished
-      // TODO: What do we even do on a cancelled run?
+      //this.currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.NOT_STARTED);
+    } else if (finishReason == Utils.RUN_STATES.CANCELLED && this.currentRun.runState != Utils.RUN_STATES.FINISHED) {
+      // Player has left before the fight has finished - only consider run as cancelled if previously set state was
+      // Ignore cancelled runs from being added into the average and being set to lastRun
+      this.currentRun.runState = finishReason;
     }
     this.updatePanelValues();
   }

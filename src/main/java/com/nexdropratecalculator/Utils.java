@@ -24,11 +24,15 @@ public class Utils {
 
     @AllArgsConstructor
     enum RUN_STATES {
-        STARTING("Starting"),       // fight started
-        STARTED_ONGOING("Active"),  // fight is currently ongoing, started before
-        FINISHED("Finished"),       // fight was started earlier and just concluded
-        CANCELLED("Cancelled"),     // fight was ongoing but player left
-        NOT_STARTED("Not Started"); // fight has not been started yet (default state)
+        // Fight started
+        STARTED("Active"),
+        // Fight was started earlier and just concluded
+        FINISHED("Finished"),
+        // Fight was ongoing but player left
+        // Cancelled runs will be ignored from adding into the average and being set to lastRun
+        CANCELLED("Cancelled"),
+        // Fight has not been started yet (default state for object initialization)
+        NOT_STARTED("Not Started");
 
         final String displayText;
 

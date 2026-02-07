@@ -23,7 +23,7 @@ public class Utils {
     }
 
     @AllArgsConstructor
-    enum RUN_STATES {
+    public enum RUN_STATES {
         // Fight started
         STARTED("Active"),
         // Fight was started earlier and just concluded

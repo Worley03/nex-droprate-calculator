@@ -4,34 +4,34 @@ import lombok.Data;
 
 @Data
 public class NexDroprateCalculatorRun {
-  public Utils.RUN_STATES runState;
+  private Utils.RUN_STATES state;
 
-  public double runUniqueChancePercent;
-  public int runUniqueChanceRoll;
-  public double runContributionPercent;
-  public int runContributionFlatOwn;
-  public int runContributionFlatTotal;
-  public boolean runMinimumContribution;
-  public double runPlayers;
-  public int runPlayersMin;
-  public int runPlayersMax;
-  public boolean runIsMVP;
-  public int ticks;
+  private int ticks;
+  private double uniqueChancePercent;
+  private int uniqueChanceRoll;
+  private double contributionPercent;
+  private int contributionFlatOwn;
+  private int contributionFlatTotal;
+  private int playersMax;         // amount of players who were present at the start of the kill
+  private int playersCurrent;     // amount of players currently in the room (can only be lower than the max)
+  private double playersAverage;  // average amount of players (used if someone leaves mid-kill)
+  private boolean isMinimumContribution;
+  private boolean isMVP;
 
   public NexDroprateCalculatorRun(Utils.RUN_STATES stateToSet) {
-    this.runState = stateToSet;
+    this.state = stateToSet;
 
-    this.runUniqueChancePercent = 0;
-    this.runUniqueChanceRoll = 0;
-    this.runContributionPercent = 0;
-    this.runContributionFlatOwn = 0;
-    this.runContributionFlatTotal = 0;
-    this.runMinimumContribution = false;
-    this.runPlayers = 0;
-    this.runPlayersMin = 0;
-    this.runPlayersMax = 0;
-    this.runIsMVP = false;
     this.ticks = 0;
+    this.uniqueChancePercent = 0;
+    this.uniqueChanceRoll = 0;
+    this.contributionPercent = 0;
+    this.contributionFlatOwn = 0;
+    this.contributionFlatTotal = 0;
+    this.playersMax = 0;
+    this.playersCurrent = 0;
+    this.playersAverage = 0;
+    this.isMinimumContribution = false;
+    this.isMVP = false;
   }
 
   public void updateRun(int ownContribution, int totalContribution, int players) {
@@ -41,24 +41,24 @@ public class NexDroprateCalculatorRun {
     // TODO: Max players value can only increase while players are joining
     //  during Nex's spawn animation, after that they can only decrease
     //  because of this, somehow set PlayersMax until no new players can enter the fight
-    if (players < runPlayersMin) runPlayersMin = players;
-    if (players > runPlayersMax) runPlayersMax = players;
+    if (players < playersCurrent) playersCurrent = players;
+    if (players > playersMax) playersMax = players;
 
-    runPlayers = (runPlayersMax + runPlayersMin) / 2.0;
+    this.playersAverage = (playersMax + playersCurrent) / 2.0;
 
     // Add to own and total contribution values
-    runContributionFlatOwn += ownContribution;
-    runContributionFlatTotal += totalContribution;
+    contributionFlatOwn += ownContribution;
+    contributionFlatTotal += totalContribution;
 
-    if (runContributionFlatOwn <= 0 || runContributionFlatTotal <= 0) {
-      runUniqueChanceRoll = 0;
-      runUniqueChancePercent = 0;
-      runContributionPercent = 0;
+    if (contributionFlatOwn <= 0 || contributionFlatTotal <= 0) {
+      uniqueChanceRoll = 0;
+      uniqueChancePercent = 0;
+      contributionPercent = 0;
     } else {
-      runUniqueChanceRoll = (int) Math.ceil(43.0 * (100.0 / runContributionPercent));
-      runUniqueChancePercent = (1.0 / (double) runUniqueChanceRoll) * 100.0;
-      runContributionPercent =
-          ((double) runContributionFlatOwn / (double) runContributionFlatTotal) * 100.0;
+      uniqueChanceRoll = (int) Math.ceil(43.0 * (100.0 / contributionPercent));
+      uniqueChancePercent = (1.0 / (double) uniqueChanceRoll) * 100.0;
+      contributionPercent =
+          ((double) contributionFlatOwn / (double) contributionFlatTotal) * 100.0;
     }
   }
 }

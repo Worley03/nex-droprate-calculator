@@ -56,8 +56,8 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     if (config.showOverlay()) {
       overlayManager.add(overlay);
     }
-    int playerCount = (int) client.getTopLevelWorldView().players().stream().count();
 
+    int playerCount = (int) client.getTopLevelWorldView().players().stream().count();
     panel.startCurrentRun(playerCount);
   }
 
@@ -184,13 +184,13 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     }
 
     if (message.equals("You were the MVP for this fight!")) {
-      panel.setCurrentRunMvp(true);
+      panel.setCurrentRunMvp();
       log.debug("Nex MVP message detected");
     }
     // Checking for Nex-specific drop message ensures we don't faultily assume player qualifying
     // for minimal contribution in the event of someone in the arena receiving a unique drop
     if (message.startsWith("<col=ef0083>Nex dropped:")) {
-      panel.setCurrentRunMinimumContribution(true);
+      panel.setCurrentRunMinimumContribution();
       log.debug("Nex drop message detected");
     }
 

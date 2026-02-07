@@ -27,16 +27,16 @@ public class NexDroprateCalculatorOverlay extends OverlayPanel {
 
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (this.plugin.panel.currentRun.getRunState() != Utils.RUN_STATES.CANCELLED || true) { // TODO: For now ignore the if statement, probably drop it later
+        if (this.plugin.panel.currentRun.getState() != Utils.RUN_STATES.CANCELLED || true) { // TODO: For now ignore the if statement, probably drop it later
             // TODO: Implement better way of displaying players (account for players leaving mid-kill)
 
-            final int currentPlayerCount = this.plugin.panel.currentRun.getRunPlayersMin();
+            final int currentPlayerCount = this.plugin.panel.currentRun.getPlayersCurrent();
             String playersValue = String.valueOf(currentPlayerCount);
             double threshold = 100.0 / currentPlayerCount; // Calculate the threshold that determines qualifying for equal damage / mvp
-            double contributionPercent = this.plugin.panel.currentRun.getRunContributionPercent(); // Get the contribution percent
+            double contributionPercent = this.plugin.panel.currentRun.getContributionPercent(); // Get the contribution percent
 
             // Convert necessary values to String
-            String[] dropRate = {Utils.fraction(this.plugin.panel.currentRun.getRunUniqueChanceRoll()), Utils.percent(contributionPercent), playersValue};
+            String[] dropRate = {Utils.fraction(this.plugin.panel.currentRun.getUniqueChanceRoll()), Utils.percent(contributionPercent), playersValue};
             String[] type = {"Drop Rate:", "Contribution:", "Players:"};
 
             // Determine the color for the contribution text

@@ -14,9 +14,7 @@ import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class NexDroprateCalculatorOverlay extends OverlayPanel {
     private final NexDroprateCalculatorPlugin plugin;
     private final NexDroprateCalculatorConfig config;

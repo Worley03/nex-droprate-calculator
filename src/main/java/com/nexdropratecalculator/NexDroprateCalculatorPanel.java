@@ -227,18 +227,18 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
   // A new run started, initialize values
   public void startCurrentRun(int playerCount) {
     // Set what's currently stored at currentRun into lastRun, but only if that run was completed successfully
-    if (this.currentRun.getState() == Utils.RUN_STATES.FINISHED) {
-      this.lastRun = this.currentRun;
+    if (currentRun.getState() == Utils.RUN_STATES.FINISHED) {
+      lastRun = currentRun;
     }
-    this.currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.STARTED);
-    this.currentRun.setPlayersCurrent(playerCount);
-    this.currentRun.setPlayersMax(playerCount);
-    this.updateAllSections();
+    currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.STARTED);
+    currentRun.setPlayersCurrent(playerCount);
+    currentRun.setPlayersMax(playerCount);
+    updateAllSections();
   }
 
   // Current run is ongoing, updating run data with recorded values
   public void updateCurrentRun(int ownContribution, int totalContribution, int players) {
-    this.currentRun.updateRun(ownContribution, totalContribution, players);
+    currentRun.updateRun(ownContribution, totalContribution, players);
     currentSection.updateFromRun(currentRun);
   }
 
@@ -248,29 +248,29 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
 
     if (finishReason == Utils.RUN_STATES.FINISHED) {
       // Current run finished successfully
-      if (this.currentRun.isMVP()) {
+      if (currentRun.isMVP()) {
         // Set the mvp bonus
-        double mvpBoost = this.currentRun.getContributionPercent() * 1.1;
+        double mvpBoost = currentRun.getContributionPercent() * 1.1;
         if (mvpBoost > 100.0) mvpBoost = 100.0;
-        this.currentRun.setUniqueChanceRoll((int) Math.ceil(43.0 * (100.0 / mvpBoost)));
-        this.currentRun.setUniqueChancePercent((1.0 / this.currentRun.getUniqueChanceRoll()) * 100.0);
+        currentRun.setUniqueChanceRoll((int) Math.ceil(43.0 * (100.0 / mvpBoost)));
+        currentRun.setUniqueChancePercent((1.0 / currentRun.getUniqueChanceRoll()) * 100.0);
       }
       // update average run values from currentRun
-      this.currentRun.setState(finishReason);
-      this.avg.addRun(this.currentRun);
-    } else if (finishReason == Utils.RUN_STATES.CANCELLED && this.currentRun.getState() != Utils.RUN_STATES.FINISHED) {
+      currentRun.setState(finishReason);
+      avg.addRun(currentRun);
+    } else if (finishReason == Utils.RUN_STATES.CANCELLED && currentRun.getState() != Utils.RUN_STATES.FINISHED) {
       // Player has left before the fight has finished - only consider run as cancelled if previously set state was
       // Ignore cancelled runs from being added into the average and being set to lastRun
-      this.currentRun.setState(finishReason);
+      currentRun.setState(finishReason);
     }
-    this.updateAllSections();
+    updateAllSections();
   }
 
   public void setCurrentRunMvp() {
-    this.currentRun.setMVP(true);
+    currentRun.setMVP(true);
   }
 
   public void setCurrentRunMinimumContribution() {
-    this.currentRun.setMinimumContribution(true);
+    currentRun.setMinimumContribution(true);
   }
 }

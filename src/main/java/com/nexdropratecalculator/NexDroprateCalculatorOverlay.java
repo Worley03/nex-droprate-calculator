@@ -26,7 +26,7 @@ public class NexDroprateCalculatorOverlay extends OverlayPanel {
         super(plugin);
         this.setPosition(OverlayPosition.TOP_LEFT);
         // Add an option to Shift+Right click's context menu which can take the user to plugin settings
-        this.addMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Configure Nex Droprate Calculator");
+        addMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Configure Nex Droprate Calculator");
         this.plugin = plugin;
         this.config = config;
     }

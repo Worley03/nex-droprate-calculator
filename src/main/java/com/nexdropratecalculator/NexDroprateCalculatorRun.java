@@ -45,9 +45,9 @@ public class NexDroprateCalculatorRun {
   }
 
   public double calculateAvgPlayers() {
-    if (this.ticks == 0) {
+    if (ticks == 0) {
       return 0;
     }
-    return (double) this.playersWeightedValue / this.ticks;
+    return (double) playersWeightedValue / ticks;
   }
 }

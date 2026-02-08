@@ -51,7 +51,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   private void startFight() {
     log.debug("Initializing Nex fight");
     panel.setCurrentRunActive(true);
-    this.ticksUntilOverlayRemoval = -1; // Cancel potential pending countdown
+    ticksUntilOverlayRemoval = -1; // Cancel potential pending countdown
     ownContribution = 0;
     totalContribution = 0;
     overlay.setShouldRender(true);

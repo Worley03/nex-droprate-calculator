@@ -20,7 +20,7 @@ class AverageValues {
   protected int contributionFlatOwn;
   protected int contributionFlatTotal;
   protected int minimumContributionTotal;
-  protected double players;
+  protected double playersAverage;
   protected int mvpTotal;
   protected double mvpPercent;
 
@@ -49,7 +49,7 @@ class AverageValues {
     contributionFlatTotal = (int) Math.round((contributionFlatTotal * totalKills + run.getContributionFlatTotal()) / (double) newTotal);
     if (run.isMinimumContribution()) minimumContributionTotal++;
 
-    players = (players * totalKills + run.getPlayersAverage()) / newTotal;
+    playersAverage = (playersAverage * totalKills + run.calculateAvgPlayers()) / newTotal;
 
     if (run.isMVP()) mvpTotal++;
     mvpPercent = mvpTotal / (double) newTotal;
@@ -258,15 +258,13 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     add(runPanel);
   }
 
-  void deinit() {}
-
   private void updatePanelValues() {
     // Current run
     uniqueChanceLabel.setText(labelValue("Unique Chance", String.format("%.4f%%", currentRun.getUniqueChancePercent())));
     uniqueRollLabel.setText(labelValue("Unique Roll", Utils.fraction(currentRun.getUniqueChanceRoll())));
     contributionPercentLabel.setText(labelValue("Contribution", String.format("%.2f%%", currentRun.getContributionPercent())));
     contributionFlatLabel.setText(labelValue("Damage", currentRun.getContributionFlatOwn() + "/" + currentRun.getContributionFlatTotal()));
-    playersLabel.setText(labelValue("Players", String.format("%.2f", currentRun.getPlayersAverage())));
+    playersLabel.setText(labelValue("Players", String.format("%.2f", currentRun.calculateAvgPlayers())));
     isMVPLabel.setText(labelValue("MVP", (currentRun.isMVP() ? "yes" : "no")));
     timeLabel.setText(labelValue("Time", Utils.formatDuration(currentRun.getTicks())));
     stateLabel.setText(labelValue("State", currentRun.getState().toString()));
@@ -276,7 +274,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     lastUniqueRollLabel.setText(labelValue("Unique Roll", Utils.fraction(lastRun.getUniqueChanceRoll())));
     lastContributionPercentLabel.setText(labelValue("Contribution", String.format("%.2f%%", lastRun.getContributionPercent())));
     lastContributionFlatLabel.setText(labelValue("Damage", lastRun.getContributionFlatOwn() + "/" + lastRun.getContributionFlatTotal()));
-    lastPlayersLabel.setText(labelValue("Players", String.format("%.2f", lastRun.getPlayersAverage())));
+    lastPlayersLabel.setText(labelValue("Players", String.format("%.2f", lastRun.calculateAvgPlayers())));
     lastIsMVPLabel.setText(labelValue("MVP", (lastRun.isMVP() ? "yes" : "no")));
     lastTimeLabel.setText(labelValue("Time", Utils.formatDuration(lastRun.getTicks())));
 
@@ -291,7 +289,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     averageUniqueRollLabel.setText(labelValue("Unique Roll", Utils.fraction(avg.uniqueChanceRoll)));
     averageContributionPercentLabel.setText(labelValue("Contribution", String.format("%.2f", avg.contributionPercent) + "%"));
     averageContributionFlatLabel.setText(labelValue("Damage", avg.contributionFlatOwn + "/" + avg.contributionFlatTotal));
-    averagePlayersLabel.setText(labelValue("Players", String.format("%.2f", avg.players)));
+    averagePlayersLabel.setText(labelValue("Players", String.format("%.2f", avg.playersAverage)));
     averageMVPPercentLabel.setText(labelValue("MVP", String.format("%.2f", (avg.mvpPercent) * 100) + "%"));
     averageMVPTotalLabel.setText(labelValue("MVP Total", String.valueOf(avg.mvpTotal)));
     averageTimeLabel.setText(labelValue("Time", Utils.formatDuration(avg.totalTicks)));

@@ -9,6 +9,7 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.gameval.NpcID;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
@@ -48,14 +49,12 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   }
 
   private void startFight() {
-    panel.setCurrentRunActive(true);
-    this.ticksUntilOverlayRemoval = -1; // Cancel countdown since we're in the fight
     log.debug("Initializing Nex fight");
+    panel.setCurrentRunActive(true);
+    this.ticksUntilOverlayRemoval = -1; // Cancel potential pending countdown
     ownContribution = 0;
     totalContribution = 0;
-    if (config.showOverlay()) {
-      overlayManager.add(overlay);
-    }
+    overlay.setShouldRender(true);
 
     int playerCount = (int) client.getTopLevelWorldView().players().stream().count();
     panel.startCurrentRun(playerCount);
@@ -65,17 +64,22 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   protected void startUp() throws Exception {
     log.debug("Starting Nex Droprate Calculator Plugin");
 
+    // Panel
     panel = injector.getInstance(NexDroprateCalculatorPanel.class);
     panel.init();
-
+    // Side panel button
     final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "icon.png");
     navButton = NavigationButton.builder().tooltip("Nex Calculator").icon(icon).panel(panel).build();
-
     clientToolbar.addNavigation(navButton);
+    // Overlay
+    overlayManager.add(overlay);
 
+    // In case plugin was turned on mid-fight, check for Nex's presence
     clientThread.invokeLater(() -> {
-      if (config.showOverlay() && isNexAlive()) {
-        overlayManager.add(overlay);
+      log.debug("Invoking on client thread");
+      // Nex uses NpcID.NEX only once she's attackable, meaning fight has already started so this check is enough
+      if (client.getTopLevelWorldView().npcs().stream().anyMatch(npc -> npc.getId() == NpcID.NEX)) {
+        startFight();
       }
     });
 
@@ -86,27 +90,16 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   protected void shutDown() {
     log.debug("Shutting down Nex Droprate Calculator Plugin");
 
-    panel.deinit();
-    clientToolbar.removeNavigation(navButton);
-    overlayManager.remove(overlay); // Remove the overlay from the overlay manager
+    // Panel
     panel = null;
+    // Side panel button
+    clientToolbar.removeNavigation(navButton);
     navButton = null;
+    // Overlay
+    overlayManager.remove(overlay);
+    overlay.setShouldRender(false);
 
     log.debug("Nex Droprate Calculator Plugin shut down successfully");
-  }
-
-  @Subscribe
-  public void onConfigChanged(ConfigChanged event) {
-    if (!event.getGroup().equals(NexDroprateCalculatorConfig.GROUP)) {
-      return;
-    }
-    if (event.getKey().equals(NexDroprateCalculatorConfig.SHOW_OVERLAY)) {
-      if (config.showOverlay() && isNexAlive()) {
-        overlayManager.add(overlay);
-      } else {
-        overlayManager.remove(overlay);
-      }
-    }
   }
 
   @Subscribe
@@ -162,8 +155,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     if (ticksUntilOverlayRemoval > -1) {
       if (ticksUntilOverlayRemoval == 0) {
         log.debug("30 seconds passed since leaving Nex, removing overlay");
-        //overlay.currentRun.updateRun(0, 0, 0); // probably unnecessary since we're removing the overlay anyway
-        overlayManager.remove(overlay);
+        overlay.setShouldRender(false);
       }
       ticksUntilOverlayRemoval--;
     }

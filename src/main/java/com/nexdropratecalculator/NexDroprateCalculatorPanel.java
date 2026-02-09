@@ -25,7 +25,7 @@ class Formatter {
   public static String formatPlayers(double avg) { return value("Players", String.format("%.2f", avg)); }
   public static String formatMVP(boolean isMVP) { return value("MVP", isMVP ? "yes" : "no"); }
   public static String formatTime(int ticks) { return value("Time", Utils.formatDuration(ticks)); }
-  public static String formatState(Utils.RUN_STATES state) { return value("State", state.toString()); }
+  public static String formatState(RunState state) { return value("State", state.toString()); }
 
   // Formats for averages
   public static String formatTotalKills(int total) { return value("Total Kills", String.valueOf(total)); }
@@ -177,8 +177,8 @@ class AverageValues {
 }
 
 public class NexDroprateCalculatorPanel extends PluginPanel {
-  protected NexDroprateCalculatorRun currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.NOT_STARTED);
-  private NexDroprateCalculatorRun lastRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.NOT_STARTED);
+  protected NexDroprateCalculatorRun currentRun = new NexDroprateCalculatorRun(RunState.NOT_STARTED);
+  private NexDroprateCalculatorRun lastRun = new NexDroprateCalculatorRun(RunState.NOT_STARTED);
   private AverageValues avg = new AverageValues();
 
   @Getter @Setter
@@ -227,10 +227,10 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
   // A new run started, initialize values
   public void startCurrentRun(int playerCount) {
     // Set what's currently stored at currentRun into lastRun, but only if that run was completed successfully
-    if (currentRun.getState() == Utils.RUN_STATES.FINISHED) {
+    if (currentRun.getState() == RunState.FINISHED) {
       lastRun = currentRun;
     }
-    currentRun = new NexDroprateCalculatorRun(Utils.RUN_STATES.STARTED);
+    currentRun = new NexDroprateCalculatorRun(RunState.STARTED);
     currentRun.setPlayersCurrent(playerCount);
     currentRun.setPlayersMax(playerCount);
     updateAllSections();
@@ -243,10 +243,10 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
   }
 
   // Current run either just finished or was cancelled (due to player leaving/dying)
-  public void finishCurrentRun(Utils.RUN_STATES finishReason) {
+  public void finishCurrentRun(RunState finishReason) {
     currentRunActive = false;
 
-    if (finishReason == Utils.RUN_STATES.FINISHED) {
+    if (finishReason == RunState.FINISHED) {
       // Current run finished successfully
       if (currentRun.isMVP()) {
         // Set the mvp bonus
@@ -258,7 +258,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
       // update average run values from currentRun
       currentRun.setState(finishReason);
       avg.addRun(currentRun);
-    } else if (finishReason == Utils.RUN_STATES.CANCELLED && currentRun.getState() != Utils.RUN_STATES.FINISHED) {
+    } else if (finishReason == RunState.CANCELLED && currentRun.getState() != RunState.FINISHED) {
       // Player has left before the fight has finished - only consider run as cancelled if previously set state was
       // Ignore cancelled runs from being added into the average and being set to lastRun
       currentRun.setState(finishReason);

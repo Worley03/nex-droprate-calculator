@@ -20,7 +20,6 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.ui.overlay.OverlayManager;
-import net.runelite.client.events.ConfigChanged;
 
 @Slf4j
 @PluginDescriptor(name = "Nex Droprate Calculator")
@@ -120,7 +119,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
           if (lastNexStatus != 2) {
             // Either player left arena while Nex was alive (3 -> 1) or player logged out (X -> 0)
             // Cancel fight status immediately but schedule overlay removal to be done later
-            panel.finishCurrentRun(Utils.RUN_STATES.CANCELLED);
+            panel.finishCurrentRun(RunState.CANCELLED);
             log.debug("Player left Nex fight, scheduling overlay removal");
             ticksUntilOverlayRemoval = REMOVE_OVERLAY_TICKS;
           }
@@ -147,7 +146,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     if (ticksUntilDumpResults > -1) {
       if (ticksUntilDumpResults == 0) {
         log.debug("Dumping finished Nex fight results");
-        panel.finishCurrentRun(Utils.RUN_STATES.FINISHED);
+        panel.finishCurrentRun(RunState.FINISHED);
       }
       ticksUntilDumpResults--;
     }

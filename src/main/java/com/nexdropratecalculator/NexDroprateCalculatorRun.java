@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class NexDroprateCalculatorRun {
-  private Utils.RUN_STATES state;
+  private RunState state;
 
   private int ticks;
   private double uniqueChancePercent;
@@ -18,7 +18,7 @@ public class NexDroprateCalculatorRun {
   private boolean isMinimumContribution;
   private boolean isMVP;
 
-  public NexDroprateCalculatorRun(Utils.RUN_STATES stateToSet) {
+  public NexDroprateCalculatorRun(RunState stateToSet) {
     this.state = stateToSet;
   }
 

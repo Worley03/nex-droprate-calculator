@@ -159,7 +159,7 @@ class AverageValues {
     avgTicksPerKill = (int) Math.round((avgTicksPerKill * totalKills + run.getTicks()) / (double) newTotal);
 
     uniqueChancePercent = (uniqueChancePercent * totalKills + run.getUniqueChancePercent()) / newTotal;
-    uniqueChanceRoll = (int) Math.ceil(100.0 / uniqueChancePercent);
+    uniqueChanceRoll = uniqueChancePercent > 0 ? (int) Math.ceil(100.0 / uniqueChancePercent) : 0;
 
     contributionPercent = (contributionPercent * totalKills + run.getContributionPercent()) / newTotal;
 

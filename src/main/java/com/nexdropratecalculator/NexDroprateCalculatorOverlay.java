@@ -36,8 +36,11 @@ public class NexDroprateCalculatorOverlay extends OverlayPanel {
         if (!config.showOverlay() || !shouldRender) {
             return null;
         }
-
-        NexDroprateCalculatorRun run = plugin.panel.currentRun;
+        NexDroprateCalculatorPanel panel = plugin.panel;
+        if (panel == null) {
+            return null;
+        }
+        NexDroprateCalculatorRun run = panel.currentRun;
 
         // Title
         panelComponent.getChildren().add(TitleComponent.builder().text("Nex Calculator").color(Color.ORANGE).build());
@@ -49,7 +52,7 @@ public class NexDroprateCalculatorOverlay extends OverlayPanel {
         // Contribution
         double contributionPercent = run.getContributionPercent();
         double avgPlayers = run.calculateAvgPlayers();
-        double threshold = avgPlayers > 0 ? 100.0 / run.calculateAvgPlayers() : 0; // Threshold determines qualifying for equal damage / mvp
+        double threshold = avgPlayers > 0 ? 100.0 / avgPlayers : 0; // Threshold determines qualifying for equal damage / mvp
         panelComponent.getChildren().add(LineComponent.builder()
                 .left("Contribution:").right(String.format("%.1f%%", contributionPercent))
                 .leftColor(Color.WHITE).rightColor(contributionPercent >= threshold ? Color.GREEN : Color.RED).build());

@@ -78,6 +78,9 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     // In case plugin was turned on mid-fight, check for Nex's presence
     clientThread.invokeLater(() -> {
       log.debug("Invoking on client thread");
+      if (panel == null) {
+        return;
+      }
       // Nex uses NpcID.NEX only once she's attackable, meaning fight has already started so this check is enough
       if (client.getTopLevelWorldView().npcs().stream().anyMatch(npc -> npc.getId() == NpcID.NEX)) {
         startFight();

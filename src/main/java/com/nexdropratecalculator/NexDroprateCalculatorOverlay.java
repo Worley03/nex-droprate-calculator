@@ -48,7 +48,8 @@ public class NexDroprateCalculatorOverlay extends OverlayPanel {
                 .leftColor(Color.WHITE).rightColor(Color.WHITE).build());
         // Contribution
         double contributionPercent = run.getContributionPercent();
-        double threshold = 100.0 / run.calculateAvgPlayers(); // Threshold determines qualifying for equal damage / mvp
+        double avgPlayers = run.calculateAvgPlayers();
+        double threshold = avgPlayers > 0 ? 100.0 / run.calculateAvgPlayers() : 0; // Threshold determines qualifying for equal damage / mvp
         panelComponent.getChildren().add(LineComponent.builder()
                 .left("Contribution:").right(String.format("%.1f%%", contributionPercent))
                 .leftColor(Color.WHITE).rightColor(contributionPercent >= threshold ? Color.GREEN : Color.RED).build());

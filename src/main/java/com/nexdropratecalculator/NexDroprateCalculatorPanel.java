@@ -121,7 +121,7 @@ class AverageDisplaySection extends DisplaySection {
     averagePlayersLabel.setText(Formatter.formatPlayers(avg.getPlayersAverage()));
     averageMVPPercentLabel.setText(Formatter.formatMVPPercent(avg.getMvpPercent()));
     averageMVPTotalLabel.setText(Formatter.formatMVPTotal(avg.getMvpTotal()));
-    averageTimeLabel.setText(Formatter.formatTime(avg.getTotalTicks()));
+    averageTimeLabel.setText(Formatter.formatTime(avg.getAvgTicksPerKill()));
     killsPerHourLabel.setText(Formatter.formatKillsPerHour(avg.getRunsPerHour()));
     uniqueChancePerHourLabel.setText(Formatter.formatUniqueChancePerHour(avg.getUniqueChancePercentPerHour()));
     uniqueRollCombinedLabel.setText(Formatter.formatCombinedUniqueRoll(avg.getTotalKills(), avg.getUniqueChanceRoll()));
@@ -131,7 +131,7 @@ class AverageDisplaySection extends DisplaySection {
 @Data
 class AverageValues {
   private int totalKills;
-  private int totalTicks;
+  private int avgTicksPerKill;
   private double uniqueChancePercent;
   private int uniqueChanceRoll;
   private double contributionPercent;
@@ -143,10 +143,10 @@ class AverageValues {
   private double mvpPercent;
 
   public double getRunsPerHour() {
-    if (totalTicks == 0) {
+    if (avgTicksPerKill == 0) {
       return 0;
     }
-    return 6000.0 / (totalTicks + 61.0); // From Nex dying, there's exactly 61 ticks until she spawns and starts new fight
+    return 6000.0 / (avgTicksPerKill + 61.0); // From Nex dying, there's exactly 61 ticks until she spawns and starts new fight
   }
 
   public double getUniqueChancePercentPerHour() {
@@ -156,7 +156,7 @@ class AverageValues {
   public void addRun(NexDroprateCalculatorRun run) {
     int newTotal = totalKills + 1;
 
-    totalTicks = (int) Math.round((totalTicks * totalKills + run.getTicks()) / (double) newTotal);
+    avgTicksPerKill = (int) Math.round((avgTicksPerKill * totalKills + run.getTicks()) / (double) newTotal);
 
     uniqueChancePercent = (uniqueChancePercent * totalKills + run.getUniqueChancePercent()) / newTotal;
     uniqueChanceRoll = (int) Math.ceil(100.0 / uniqueChancePercent);
@@ -243,7 +243,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
   }
 
   // Current run either just finished or was cancelled (due to player leaving/dying)
-  public void finishCurrentRun(RunState finishReason, int ticksToSubstract) {
+  public void finishCurrentRun(RunState finishReason, int ticksToSubtract) {
     currentRunActive = false;
 
     if (finishReason == RunState.FINISHED) {
@@ -253,7 +253,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
         currentRun.updateUniqueChance(Math.min(currentRun.getContributionPercent() * 1.1, 100.0));
       }
       // HACK: We've waited for N ticks after fight ended before finishing, correct the time
-      currentRun.setTicks(currentRun.getTicks() - ticksToSubstract);
+      currentRun.setTicks(currentRun.getTicks() - ticksToSubtract);
       // update average run values from currentRun
       currentRun.setState(finishReason);
       avg.addRun(currentRun);

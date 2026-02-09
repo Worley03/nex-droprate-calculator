@@ -249,11 +249,8 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     if (finishReason == RunState.FINISHED) {
       // Current run finished successfully
       if (currentRun.isMVP()) {
-        // Set the mvp bonus
-        double mvpBoost = currentRun.getContributionPercent() * 1.1;
-        if (mvpBoost > 100.0) mvpBoost = 100.0;
-        currentRun.setUniqueChanceRoll((int) Math.ceil(43.0 * (100.0 / mvpBoost)));
-        currentRun.setUniqueChancePercent((1.0 / currentRun.getUniqueChanceRoll()) * 100.0);
+        // Set the mvp bonus - Math.min to ensure contribution doesn't exceed 100% (in case of a solo run)
+        currentRun.updateUniqueChance(Math.min(currentRun.getContributionPercent() * 1.1, 100.0));
       }
       // update average run values from currentRun
       currentRun.setState(finishReason);

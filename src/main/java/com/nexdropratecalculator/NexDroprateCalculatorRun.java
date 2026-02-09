@@ -32,16 +32,15 @@ public class NexDroprateCalculatorRun {
     contributionFlatOwn += ownContribution;
     contributionFlatTotal += totalContribution;
 
-    if (contributionFlatOwn <= 0 || contributionFlatTotal <= 0) {
-      uniqueChanceRoll = 0;
-      uniqueChancePercent = 0;
-      contributionPercent = 0;
-    } else {
-      uniqueChanceRoll = (int) Math.ceil(43.0 * (100.0 / contributionPercent));
-      uniqueChancePercent = (1.0 / (double) uniqueChanceRoll) * 100.0;
-      contributionPercent =
-          ((double) contributionFlatOwn / (double) contributionFlatTotal) * 100.0;
+    if (contributionFlatOwn > 0 && contributionFlatTotal > 0) {
+      contributionPercent = (double) contributionFlatOwn / contributionFlatTotal * 100.0;
+      updateUniqueChance(contributionPercent);
     }
+  }
+
+  public void updateUniqueChance(double contribPercent) {
+    uniqueChanceRoll = (int) Math.ceil(43.0 * (100.0 / contribPercent));
+    uniqueChancePercent = 1.0 / uniqueChanceRoll * 100.0;
   }
 
   public double calculateAvgPlayers() {

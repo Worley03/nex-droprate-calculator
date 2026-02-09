@@ -226,6 +226,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
 
   // A new run started, initialize values
   public void startCurrentRun(int playerCount) {
+    currentRunActive = true;
     // Set what's currently stored at currentRun into lastRun, but only if that run was completed successfully
     if (currentRun.getState() == RunState.FINISHED) {
       lastRun = currentRun;
@@ -258,8 +259,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
       currentRun.setState(finishReason);
       avg.addRun(currentRun);
     } else if (finishReason == RunState.CANCELLED && currentRun.getState() != RunState.FINISHED) {
-      // Player has left before the fight has finished - only consider run as cancelled if previously set state was
-      // Ignore cancelled runs from being added into the average and being set to lastRun
+      // Player has left before the fight has finished - only consider run as cancelled if previously set state wasn't set to finished
       currentRun.setState(finishReason);
     }
     updateAllSections();

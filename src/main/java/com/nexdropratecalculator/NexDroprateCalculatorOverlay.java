@@ -7,106 +7,66 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
+
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
+import lombok.Setter;
 
-@Slf4j
 public class NexDroprateCalculatorOverlay extends OverlayPanel {
-    public NexDroprateCalculatorRun currentRun = new NexDroprateCalculatorRun();
     private final NexDroprateCalculatorPlugin plugin;
-    private int playersCount = 0;
-
-    void updateValues(
-            int ownContribution,
-            int totalContribution,
-            int players,
-            boolean isMVP,
-            boolean minContribution,
-            int state) {
-
-        this.playersCount = players;
-
-        if (state == 1 && currentRun.getRunState() == 1) {
-            // Collecting current run information
-            currentRun.updateRun(
-                    ownContribution, totalContribution, players, isMVP, minContribution, false, false);
-            currentRun.setRunState(state);
-        } else if (state == 1 && currentRun.getRunState() != 1) {
-            // New run starts
-            if (currentRun.getRunState() == 0);
-            currentRun.reset();
-            currentRun.updateRun(
-                    ownContribution, totalContribution, players, isMVP, minContribution, true, false);
-            currentRun.setRunState(state);
-        } else if (state == 0 && currentRun.getRunState() == 1) {
-            // Current run finished
-            currentRun.updateRun(
-                    ownContribution, totalContribution, players, isMVP, minContribution, false, true);
-            currentRun.setRunState(state);
-        } else if (state == -1 && currentRun.getRunState() == 1) {
-            // Current run canceled
-            currentRun.setRunState(state);
-        }
-    }
+    private final NexDroprateCalculatorConfig config;
+    @Getter @Setter
+    private boolean shouldRender = false;
 
     @Inject
-    public NexDroprateCalculatorOverlay(NexDroprateCalculatorPlugin plugin) {
+    public NexDroprateCalculatorOverlay(NexDroprateCalculatorPlugin plugin, NexDroprateCalculatorConfig config) {
         super(plugin);
-        setPosition(OverlayPosition.TOP_LEFT);
+        this.setPosition(OverlayPosition.TOP_LEFT);
+        // Add an option to Shift+Right click's context menu which can take the user to plugin settings
+        addMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Configure Nex Droprate Calculator");
         this.plugin = plugin;
-        addMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Nex Droprate Calculator Overlay");
+        this.config = config;
     }
 
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (currentRun.getRunState() != -1) {
-
-            String playersValue = String.valueOf(playersCount); // Convert playersCount to String
-            double threshold = 100.0 / playersCount;  // Calculate the threshold (100 / player count)
-            double contributionPercent = currentRun.getRunContributionPercent();  // Get the contribution percent
-
-// Convert necessary values to String
-            String[] dropRate = {fraction(currentRun.getRunUniqueChanceRoll()), percent(contributionPercent), playersValue};
-            String[] type = {"Drop Rate:", "Contribution:", "Players:"};
-
-// Determine the color for the contribution text
-            Color contributionColor = contributionPercent > threshold ? Color.GREEN : Color.RED;
-
-            panelComponent.getChildren().add(TitleComponent.builder()
-                    .text("Nex Calculator")
-                    .color(Color.ORANGE)
-                    .build());
-
-            for (int i = 0; i < dropRate.length; i++) {
-                Color leftColor = Color.WHITE;  // Default left color
-                Color rightColor = (i == 1) ? contributionColor : Color.WHITE;  // Apply the color logic to "Contribution" text only
-
-                panelComponent.getChildren().add(LineComponent.builder()
-                        .left(type[i])
-                        .right(dropRate[i])
-                        .leftColor(leftColor)
-                        .rightColor(rightColor)
-                        .build());
-            }
-
-            return super.render(graphics);
-
+        if (!config.showOverlay() || !shouldRender) {
+            return null;
         }
-        return null; // Return null if the overlay should not be shown
-    }
-
-    private String percent(double value) {
-        return String.format("%.1f%%", value);
-    }
-
-    private String fraction(int value) {
-        if (value == 0) {
-            return "N/A";
+        NexDroprateCalculatorPanel panel = plugin.panel;
+        if (panel == null) {
+            return null;
         }
-        int denominator = (value);
-        return "1/" + denominator;
+        NexDroprateCalculatorRun run = panel.currentRun;
+
+        // Title
+        panelComponent.getChildren().add(TitleComponent.builder().text("Nex Calculator").color(Color.ORANGE).build());
+
+        // Drop rate
+        panelComponent.getChildren().add(LineComponent.builder()
+                .left("Drop Rate:").right(Utils.fraction(run.getUniqueChanceRoll()))
+                .leftColor(Color.WHITE).rightColor(Color.WHITE).build());
+        // Contribution
+        double contributionPercent = run.getContributionPercent();
+        double avgPlayers = run.calculateAvgPlayers();
+        double threshold = avgPlayers > 0 ? 100.0 / avgPlayers : 0; // Threshold determines qualifying for equal damage / mvp
+        panelComponent.getChildren().add(LineComponent.builder()
+                .left("Contribution:").right(String.format("%.1f%%", contributionPercent))
+                .leftColor(Color.WHITE).rightColor(contributionPercent >= threshold ? Color.GREEN : Color.RED).build());
+        // Players
+        final int playerCount = run.getPlayersCurrent();
+        String playersValue = String.format("%d", playerCount);
+        // Someone might have left after the fight started, account for that and display original player count as well
+        if (playerCount < run.getPlayersMax()) {
+            playersValue = String.format("%d out of %d", playerCount, run.getPlayersMax());
+        }
+        panelComponent.getChildren().add(LineComponent.builder()
+                .left("Players:").right(playersValue)
+                .leftColor(Color.WHITE).rightColor(Color.WHITE).build());
+
+        return super.render(graphics);
     }
 }

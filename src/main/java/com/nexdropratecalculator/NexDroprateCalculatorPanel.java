@@ -3,49 +3,190 @@ package com.nexdropratecalculator;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import lombok.extern.slf4j.Slf4j;
+
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 
-@Slf4j
+class Formatter {
+  private static final String HTML_TEMPLATE = "<html><div style='color:white;font-size:10px;'>%s</div></html>";
+
+  public static String text(String text) { return String.format(HTML_TEMPLATE, text); }
+  public static String value(String name, String value) { return String.format(HTML_TEMPLATE, "<b>" + name + ":</b> " + value); }
+
+  // Common formats
+  public static String formatUniqueChance(double percent) { return value("Unique Chance", String.format("%.4f%%", percent)); }
+  public static String formatUniqueRoll(int roll) { return value("Unique Roll", Utils.fraction(roll)); }
+  public static String formatContribution(double percent) { return value("Contribution", String.format("%.2f%%", percent)); }
+  public static String formatDamage(int own, int total) { return value("Damage", own + "/" + total); }
+  public static String formatPlayers(double avg) { return value("Players", String.format("%.2f", avg)); }
+  public static String formatMVP(boolean isMVP) { return value("MVP", isMVP ? "yes" : "no"); }
+  public static String formatTime(int ticks) { return value("Time", Utils.formatDuration(ticks)); }
+  public static String formatState(RunState state) { return value("State", state.toString()); }
+
+  // Formats for averages
+  public static String formatTotalKills(int total) { return value("Total Kills", String.valueOf(total)); }
+  public static String formatMVPPercent(double percent) { return value("MVP", String.format("%.2f%%", percent * 100)); }
+  public static String formatMVPTotal(int total) { return value("MVP Total", String.valueOf(total)); }
+  public static String formatKillsPerHour(double killsPerHour) { return value("Kills / hr", String.format("%.2f", killsPerHour)); }
+  public static String formatUniqueChancePerHour(double percent) { return value("Unique Chance / hr", String.format("%.4f%%", percent)); }
+  public static String formatCombinedUniqueRoll(int totalKills, int uniqueChanceRoll) {
+    int combinedRoll = totalKills != 0 ? uniqueChanceRoll / totalKills : 0;
+    return value("Combined Unique Roll", Utils.fraction(combinedRoll));
+  }
+}
+
+abstract class DisplaySection {
+  protected final JPanel parent;
+  protected final Font font;
+
+  public DisplaySection(JPanel parent, Font font, String sectionTitle) {
+    this.parent = parent;
+    this.font = font;
+
+    JLabel titleLabel = new JLabel(Formatter.text(String.format("- %s -", sectionTitle)));
+    titleLabel.setFont(font);
+    this.parent.add(titleLabel);
+  }
+
+  protected JLabel createLabel() {
+    JLabel label = new JLabel();
+    label.setFont(font);
+    parent.add(label);
+    return label;
+  }
+}
+
+class RunDisplaySection extends DisplaySection {
+  private final JLabel uniqueChanceLabel = createLabel();
+  private final JLabel uniqueRollLabel = createLabel();
+  private final JLabel contributionPercentLabel = createLabel();
+  private final JLabel contributionFlatLabel = createLabel();
+  private final JLabel playersLabel = createLabel();
+  private final JLabel isMVPLabel = createLabel();
+  private final JLabel timeLabel = createLabel();
+  private JLabel stateLabel = null;
+
+  public RunDisplaySection(JPanel parent, Font font, String sectionTitle, boolean includeState) {
+    super(parent, font, sectionTitle);
+
+    if (includeState) {
+      this.stateLabel = createLabel();
+    }
+    createLabel(); // TODO: consider getting rid of empty labels and instead implement margin
+  }
+
+  public void updateFromRun(NexDroprateCalculatorRun run) {
+    uniqueChanceLabel.setText(Formatter.formatUniqueChance(run.getUniqueChancePercent()));
+    uniqueRollLabel.setText(Formatter.formatUniqueRoll(run.getUniqueChanceRoll()));
+    contributionPercentLabel.setText(Formatter.formatContribution(run.getContributionPercent()));
+    contributionFlatLabel.setText(Formatter.formatDamage(run.getContributionFlatOwn(), run.getContributionFlatTotal()));
+    playersLabel.setText(Formatter.formatPlayers(run.calculateAvgPlayers()));
+    isMVPLabel.setText(Formatter.formatMVP(run.isMVP()));
+    timeLabel.setText(Formatter.formatTime(run.getTicks()));
+    if (stateLabel != null) {
+      stateLabel.setText(Formatter.formatState(run.getState()));
+    }
+  }
+}
+
+class AverageDisplaySection extends DisplaySection {
+  private final JLabel totalKillsLabel = createLabel();
+  private final JLabel averageUniqueChanceLabel = createLabel();
+  private final JLabel averageUniqueRollLabel = createLabel();
+  private final JLabel averageContributionPercentLabel = createLabel();
+  private final JLabel averageContributionFlatLabel = createLabel();
+  private final JLabel averagePlayersLabel = createLabel();
+  private final JLabel averageMVPPercentLabel = createLabel();
+  private final JLabel averageMVPTotalLabel = createLabel();
+  private final JLabel averageTimeLabel = createLabel();
+  private final JLabel killsPerHourLabel = createLabel();
+  private final JLabel uniqueChancePerHourLabel = createLabel();
+  private final JLabel uniqueRollCombinedLabel = createLabel();
+  // Button is added later inside the init function
+
+  public AverageDisplaySection(JPanel parent, Font font, String sectionTitle) {
+    super(parent, font, sectionTitle);
+  }
+
+  public void updateFromAverage(AverageValues avg) {
+    totalKillsLabel.setText(Formatter.formatTotalKills(avg.getTotalKills()));
+    averageUniqueChanceLabel.setText(Formatter.formatUniqueChance(avg.getUniqueChancePercent()));
+    averageUniqueRollLabel.setText(Formatter.formatUniqueRoll(avg.getUniqueChanceRoll()));
+    averageContributionPercentLabel.setText(Formatter.formatContribution(avg.getContributionPercent()));
+    averageContributionFlatLabel.setText(Formatter.formatDamage(avg.getContributionFlatOwn(), avg.getContributionFlatTotal()));
+    averagePlayersLabel.setText(Formatter.formatPlayers(avg.getPlayersAverage()));
+    averageMVPPercentLabel.setText(Formatter.formatMVPPercent(avg.getMvpPercent()));
+    averageMVPTotalLabel.setText(Formatter.formatMVPTotal(avg.getMvpTotal()));
+    averageTimeLabel.setText(Formatter.formatTime(avg.getAvgTicksPerKill()));
+    killsPerHourLabel.setText(Formatter.formatKillsPerHour(avg.getRunsPerHour()));
+    uniqueChancePerHourLabel.setText(Formatter.formatUniqueChancePerHour(avg.getUniqueChancePercentPerHour()));
+    uniqueRollCombinedLabel.setText(Formatter.formatCombinedUniqueRoll(avg.getTotalKills(), avg.getUniqueChanceRoll()));
+  }
+}
+
+@Data
+class AverageValues {
+  private int totalKills;
+  private int avgTicksPerKill;
+  private double uniqueChancePercent;
+  private int uniqueChanceRoll;
+  private double contributionPercent;
+  private int contributionFlatOwn;
+  private int contributionFlatTotal;
+  private int minimumContributionTotal;
+  private double playersAverage;
+  private int mvpTotal;
+  private double mvpPercent;
+
+  public double getRunsPerHour() {
+    if (avgTicksPerKill == 0) {
+      return 0;
+    }
+    return 6000.0 / (avgTicksPerKill + 61.0); // From Nex dying, there's exactly 61 ticks until she spawns and starts new fight
+  }
+
+  public double getUniqueChancePercentPerHour() {
+    return (1 - Math.pow(1.0 - (uniqueChancePercent / 100.0), getRunsPerHour())) * 100.0;
+  }
+
+  public void addRun(NexDroprateCalculatorRun run) {
+    int newTotal = totalKills + 1;
+
+    avgTicksPerKill = (int) Math.round((avgTicksPerKill * totalKills + run.getTicks()) / (double) newTotal);
+
+    uniqueChancePercent = (uniqueChancePercent * totalKills + run.getUniqueChancePercent()) / newTotal;
+    uniqueChanceRoll = uniqueChancePercent > 0 ? (int) Math.ceil(100.0 / uniqueChancePercent) : 0;
+
+    contributionPercent = (contributionPercent * totalKills + run.getContributionPercent()) / newTotal;
+
+    contributionFlatOwn = (int) Math.round((contributionFlatOwn * totalKills + run.getContributionFlatOwn()) / (double) newTotal);
+    contributionFlatTotal = (int) Math.round((contributionFlatTotal * totalKills + run.getContributionFlatTotal()) / (double) newTotal);
+    if (run.isMinimumContribution()) minimumContributionTotal++;
+
+    playersAverage = (playersAverage * totalKills + run.calculateAvgPlayers()) / newTotal;
+
+    if (run.isMVP()) mvpTotal++;
+    mvpPercent = mvpTotal / (double) newTotal;
+
+    totalKills++;
+  }
+}
+
 public class NexDroprateCalculatorPanel extends PluginPanel {
-  public NexDroprateCalculatorRun currentRun = new NexDroprateCalculatorRun();
-  public NexDroprateCalculatorRun lastRun = new NexDroprateCalculatorRun();
-  public NexDroprateCalculatorRun averageRun = new NexDroprateCalculatorRun();
+  protected NexDroprateCalculatorRun currentRun = new NexDroprateCalculatorRun(RunState.NOT_STARTED);
+  private NexDroprateCalculatorRun lastRun = new NexDroprateCalculatorRun(RunState.NOT_STARTED);
+  private AverageValues avg = new AverageValues();
 
-  public JPanel runPanel;
+  @Getter @Setter
+  private boolean currentRunActive = false;
 
-  // Persist the components in fields
-  private JLabel uniqueChanceLabel;
-  private JLabel uniqueRollLabel;
-  private JLabel contributionPercentLabel;
-  private JLabel contributionFlatLabel;
-  private JLabel playersLabel;
-  private JLabel isMVPLabel;
-  private JLabel timeLabel;
-  private JLabel stateLabel;
-
-  private JLabel lastUniqueChanceLabel;
-  private JLabel lastUniqueRollLabel;
-  private JLabel lastContributionPercentLabel;
-  private JLabel lastContributionFlatLabel;
-  private JLabel lastPlayersLabel;
-  private JLabel lastIsMVPLabel;
-  private JLabel lastTimeLabel;
-
-  private JLabel totalKillsLabel;
-  private JLabel averageUniqueChanceLabel;
-  private JLabel averageUniqueRollLabel;
-  private JLabel averageContributionPercentLabel;
-  private JLabel averageContributionFlatLabel;
-  private JLabel averagePlayersLabel;
-  private JLabel averageMVPPercentLabel;
-  private JLabel averageMVPTotalLabel;
-  private JLabel averageTimeLabel;
-  private JLabel killsPerHourLabel;
-  private JLabel uniqueChancePerHourLabel;
-  private JLabel uniqueRollCombined;
+  private RunDisplaySection currentSection;
+  private RunDisplaySection lastSection;
+  private AverageDisplaySection averageSection;
 
   void init() {
     final Font font = FontManager.getDefaultFont();
@@ -55,287 +196,80 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
     setBorder(new EmptyBorder(10, 10, 10, 10));
 
     // Run panel
-    runPanel = new JPanel();
+    JPanel runPanel = new JPanel();
     runPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
     runPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     runPanel.setLayout(new GridLayout(0, 1));
 
-    // Current run labels
-    JLabel currentKillLabel = new JLabel(labelTitle("- Current Kill -"));
-    currentKillLabel.setFont(font);
-    runPanel.add(currentKillLabel);
+    currentSection = new RunDisplaySection(runPanel, font, "Current Kill", true);
+    lastSection = new RunDisplaySection(runPanel, font, "Last Kill", false);
+    averageSection = new AverageDisplaySection(runPanel, font, "Averages");
 
-    uniqueChanceLabel = new JLabel(labelValue("Unique Chance", "0.0000%"));
-    uniqueChanceLabel.setFont(font);
-    runPanel.add(uniqueChanceLabel);
-
-    uniqueRollLabel = new JLabel(labelValue("Unique Roll", "N/A"));
-    uniqueRollLabel.setFont(font);
-    runPanel.add(uniqueRollLabel);
-
-    contributionPercentLabel = new JLabel(labelValue("Contribution", "0.00%"));
-    contributionPercentLabel.setFont(font);
-    runPanel.add(contributionPercentLabel);
-
-    contributionFlatLabel = new JLabel(labelValue("Damage", "0/0"));
-    contributionFlatLabel.setFont(font);
-    runPanel.add(contributionFlatLabel);
-
-    playersLabel = new JLabel(labelValue("Players", "0.00"));
-    playersLabel.setFont(font);
-    runPanel.add(playersLabel);
-
-    isMVPLabel = new JLabel(labelValue("MVP", "no"));
-    isMVPLabel.setFont(font);
-    runPanel.add(isMVPLabel);
-
-    timeLabel = new JLabel(labelValue("Time", "00h 00m 00s"));
-    timeLabel.setFont(font);
-    runPanel.add(timeLabel);
-
-    stateLabel = new JLabel(labelState(0));
-    stateLabel.setFont(font);
-    runPanel.add(stateLabel);
-
-    JLabel emptyLabel = new JLabel(labelEmpty());
-    emptyLabel.setFont(font);
-    runPanel.add(emptyLabel);
-
-    // Last run labels
-    JLabel lastKillLabel = new JLabel(labelTitle("- Last Kill -"));
-    lastKillLabel.setFont(font);
-    runPanel.add(lastKillLabel);
-
-    lastUniqueChanceLabel = new JLabel(labelValue("Unique Chance", "0.0000%"));
-    lastUniqueChanceLabel.setFont(font);
-    runPanel.add(lastUniqueChanceLabel);
-
-    lastUniqueRollLabel = new JLabel(labelValue("Unique Roll", "N/A"));
-    lastUniqueRollLabel.setFont(font);
-    runPanel.add(lastUniqueRollLabel);
-
-    lastContributionPercentLabel = new JLabel(labelValue("Contribution", "0.00%"));
-    lastContributionPercentLabel.setFont(font);
-    runPanel.add(lastContributionPercentLabel);
-
-    lastContributionFlatLabel = new JLabel(labelValue("Damage", "0/0"));
-    lastContributionFlatLabel.setFont(font);
-    runPanel.add(lastContributionFlatLabel);
-
-    lastPlayersLabel = new JLabel(labelValue("Players", "0.00"));
-    lastPlayersLabel.setFont(font);
-    runPanel.add(lastPlayersLabel);
-
-    lastIsMVPLabel = new JLabel(labelValue("MVP", "no"));
-    lastIsMVPLabel.setFont(font);
-    runPanel.add(lastIsMVPLabel);
-
-    lastTimeLabel = new JLabel(labelValue("Time", "00h 00m 00s"));
-    lastTimeLabel.setFont(font);
-    runPanel.add(lastTimeLabel);
-
-    JLabel lastEmptyLabel = new JLabel(labelEmpty());
-    lastEmptyLabel.setFont(font);
-    runPanel.add(lastEmptyLabel);
-
-    // Average run labels
-    JLabel averageKillLabel = new JLabel(labelTitle("- Averages -"));
-    averageKillLabel.setFont(font);
-    runPanel.add(averageKillLabel);
-
-    totalKillsLabel = new JLabel(labelValue("Total Kills", "0"));
-    totalKillsLabel.setFont(font);
-    runPanel.add(totalKillsLabel);
-
-    averageUniqueChanceLabel = new JLabel(labelValue("Unique Chance", "0.0000%"));
-    averageUniqueChanceLabel.setFont(font);
-    runPanel.add(averageUniqueChanceLabel);
-
-    averageUniqueRollLabel = new JLabel(labelValue("Unique Roll", "N/A"));
-    averageUniqueRollLabel.setFont(font);
-    runPanel.add(averageUniqueRollLabel);
-
-    averageContributionPercentLabel = new JLabel(labelValue("Contribution", "0.00%"));
-    averageContributionPercentLabel.setFont(font);
-    runPanel.add(averageContributionPercentLabel);
-
-    averageContributionFlatLabel = new JLabel(labelValue("Damage", "0/0"));
-    averageContributionFlatLabel.setFont(font);
-    runPanel.add(averageContributionFlatLabel);
-
-    averagePlayersLabel = new JLabel(labelValue("Players", "0.00"));
-    averagePlayersLabel.setFont(font);
-    runPanel.add(averagePlayersLabel);
-
-    averageMVPPercentLabel = new JLabel(labelValue("MVP", "0.00%"));
-    averageMVPPercentLabel.setFont(font);
-    runPanel.add(averageMVPPercentLabel);
-
-    averageMVPTotalLabel = new JLabel(labelValue("MVP Total", "0"));
-    averageMVPTotalLabel.setFont(font);
-    runPanel.add(averageMVPTotalLabel);
-
-    averageTimeLabel = new JLabel(labelValue("Time", "00h 00m 00s"));
-    averageTimeLabel.setFont(font);
-    runPanel.add(averageTimeLabel);
-
-    killsPerHourLabel = new JLabel(labelValue("Kills / hr", "0.00"));
-    killsPerHourLabel.setFont(font);
-    runPanel.add(killsPerHourLabel);
-
-    uniqueChancePerHourLabel = new JLabel(labelValue("Unique Chance / hr", "0.0000%"));
-    uniqueChancePerHourLabel.setFont(font);
-    runPanel.add(uniqueChancePerHourLabel);
-
-    uniqueRollCombined = new JLabel(labelValue("Combined Unique Roll", "N/A"));
-    uniqueRollCombined.setFont(font);
-    runPanel.add(uniqueRollCombined);
-
-    JLabel averageEmptyLabel = new JLabel(labelEmpty());
-    averageEmptyLabel.setFont(font);
-    runPanel.add(averageEmptyLabel);
-
-    JButton resetButton = new JButton(labelButton("Reset Averages"));
+    JButton resetButton = new JButton(Formatter.text("Reset Averages"));
     resetButton.setFont(font);
     resetButton.setFocusable(false);
     resetButton.addActionListener(e -> {
-      averageRun.reset();
-      RestButtonUpdate();
+      avg = new AverageValues();
+      averageSection.updateFromAverage(avg);
     });
     runPanel.add(resetButton);
 
     add(runPanel);
+    updateAllSections(); // Run once to initialize displays with default values
   }
 
-  void deinit() {}
+  private void updateAllSections() {
+    currentSection.updateFromRun(currentRun);
+    lastSection.updateFromRun(lastRun);
+    averageSection.updateFromAverage(avg);
+  }
 
-  void updateValues(
-          int ownContribution,
-          int totalContribution,
-          int players,
-          boolean isMVP,
-          boolean minContribution,
-          int state) {
-    if (state == 1 && currentRun.getRunState() == 1) {
-      // Collecting current run information
-      currentRun.updateRun(
-              ownContribution, totalContribution, players, isMVP, minContribution, false, false);
-      currentRun.setRunState(state);
-    } else if (state == 1 && currentRun.getRunState() != 1) {
-      // New run starts
-      if (currentRun.getRunState() == 0) lastRun.setFromRun(currentRun);
-      currentRun.reset();
-      currentRun.updateRun(
-              ownContribution, totalContribution, players, isMVP, minContribution, true, false);
-      currentRun.setRunState(state);
-    } else if (state == 0 && currentRun.getRunState() == 1) {
-      // Current run finished
-      currentRun.updateRun(
-              ownContribution, totalContribution, players, isMVP, minContribution, false, true);
-      averageRun.addRun(currentRun);
-      currentRun.setRunState(state);
-    } else if (state == -1 && currentRun.getRunState() == 1) {
-      // Current run canceled
-      currentRun.setRunState(state);
+  // A new run started, initialize values
+  public void startCurrentRun(int playerCount) {
+    currentRunActive = true;
+    // Set what's currently stored at currentRun into lastRun, but only if that run was completed successfully
+    if (currentRun.getState() == RunState.FINISHED) {
+      lastRun = currentRun;
     }
+    currentRun = new NexDroprateCalculatorRun(RunState.STARTED);
+    currentRun.setPlayersCurrent(playerCount);
+    currentRun.setPlayersMax(playerCount);
+    updateAllSections();
+  }
 
-    uniqueChanceLabel.setText(labelValue("Unique Chance", String.format("%.4f", currentRun.getRunUniqueChancePercent()) + "%"));
-    uniqueRollLabel.setText(labelValue("Unique Roll", fraction(currentRun.getRunUniqueChanceRoll())));
-    contributionPercentLabel.setText(labelValue("Contribution", String.format("%.2f", currentRun.getRunContributionPercent()) + "%"));
-    contributionFlatLabel.setText(labelValue("Damage", currentRun.getRunContributionFlatOwn() + "/" + currentRun.getRunContributionFlatTotal()));
-    playersLabel.setText(labelValue("Players", String.format("%.2f", currentRun.getRunPlayers())));
-    isMVPLabel.setText(labelValue("MVP", (currentRun.isRunIsMVP() ? "yes" : "no")));
-    timeLabel.setText(labelValue("Time", currentRun.getTime()));
-    stateLabel.setText(labelState(currentRun.getRunState()));
+  // Current run is ongoing, updating run data with recorded values
+  public void updateCurrentRun(int ownContribution, int totalContribution, int players) {
+    currentRun.updateRun(ownContribution, totalContribution, players);
+    currentSection.updateFromRun(currentRun);
+  }
 
-    // Last run
-    lastUniqueChanceLabel.setText(labelValue("Unique Chance", String.format("%.4f", lastRun.getRunUniqueChancePercent()) + "%"));
-    lastUniqueRollLabel.setText(labelValue("Unique Roll", fraction(lastRun.getRunUniqueChanceRoll())));
-    lastContributionPercentLabel.setText(labelValue("Contribution", String.format("%.2f", lastRun.getRunContributionPercent()) + "%"));
-    lastContributionFlatLabel.setText(labelValue("Damage", lastRun.getRunContributionFlatOwn() + "/" + lastRun.getRunContributionFlatTotal()));
-    lastPlayersLabel.setText(labelValue("Players", String.format("%.2f", lastRun.getRunPlayers())));
-    lastIsMVPLabel.setText(labelValue("MVP", (lastRun.isRunIsMVP() ? "yes" : "no")));
-    lastTimeLabel.setText(labelValue("Time", lastRun.getTime()));
+  // Current run either just finished or was cancelled (due to player leaving/dying)
+  public void finishCurrentRun(RunState finishReason, int ticksToSubtract) {
+    currentRunActive = false;
 
-    // Average run
-    totalKillsLabel.setText(labelValue("Total Kills", String.valueOf(averageRun.getRunAverageTotal())));
-    averageUniqueChanceLabel.setText(labelValue("Unique Chance", String.format("%.4f", averageRun.getRunAverageUniqueChancePercent()) + "%"));
-    averageUniqueRollLabel.setText(labelValue("Unique Roll", fraction(averageRun.getRunAverageUniqueChanceRoll())));
-    averageContributionPercentLabel.setText(labelValue("Contribution", String.format("%.2f", averageRun.getRunAverageContributionPercent()) + "%"));
-    averageContributionFlatLabel.setText(labelValue("Damage", averageRun.getRunAverageContributionFlatOwn() + "/" + averageRun.getRunAverageContributionFlatTotal()));
-    averagePlayersLabel.setText(labelValue("Players", String.format("%.2f", averageRun.getRunAveragePlayers())));
-    averageMVPPercentLabel.setText(labelValue("MVP", String.format("%.2f", (averageRun.getRunAverageIsMVPPercent()) * 100) + "%"));
-    averageMVPTotalLabel.setText(labelValue("MVP Total", String.valueOf(averageRun.getRunAverageIsMVPTotal())));
-    averageTimeLabel.setText(labelValue("Time", averageRun.getRunAverageTime()));
-    killsPerHourLabel.setText(labelValue("Kills / hr", String.format("%.2f", averageRun.getRunAverageRunsPerHour())));
-    uniqueChancePerHourLabel.setText(labelValue("Unique Chance / hr", String.format("%.4f", averageRun.getRunAverageUniqueChancePercentPerHour()) + "%"));
-
-    int total = averageRun.getRunAverageTotal();
-    if (total != 0) {
-      uniqueRollCombined.setText(labelValue("Combined Unique Roll", String.format(fraction(averageRun.getRunAverageUniqueChanceRoll() / total))));
-    } else {
-      uniqueRollCombined.setText(labelValue("Combined Unique Roll", "N/A"));  // Or any appropriate fallback message
+    if (finishReason == RunState.FINISHED) {
+      // Current run finished successfully
+      if (currentRun.isMVP()) {
+        // Set the mvp bonus - Math.min to ensure contribution doesn't exceed 100% (in case of a solo run)
+        currentRun.updateUniqueChance(Math.min(currentRun.getContributionPercent() * 1.1, 100.0));
+      }
+      // HACK: We've waited for N ticks after fight ended before finishing, correct the time
+      currentRun.setTicks(currentRun.getTicks() - ticksToSubtract);
+      // update average run values from currentRun
+      currentRun.setState(finishReason);
+      avg.addRun(currentRun);
+    } else if (finishReason == RunState.CANCELLED && currentRun.getState() != RunState.FINISHED) {
+      // Player has left before the fight has finished - only consider run as cancelled if previously set state wasn't set to finished
+      currentRun.setState(finishReason);
     }
+    updateAllSections();
   }
 
-  void RestButtonUpdate() {
-    totalKillsLabel.setText(labelValue("Total Kills", String.valueOf(averageRun.getRunAverageTotal())));
-    averageUniqueChanceLabel.setText(labelValue("Unique Chance", String.format("%.4f", averageRun.getRunAverageUniqueChancePercent()) + "%"));
-    averageUniqueRollLabel.setText(labelValue("Unique Roll", fraction(averageRun.getRunAverageUniqueChanceRoll())));
-    averageContributionPercentLabel.setText(labelValue("Contribution", String.format("%.2f", averageRun.getRunAverageContributionPercent()) + "%"));
-    averageContributionFlatLabel.setText(labelValue("Damage", averageRun.getRunAverageContributionFlatOwn() + "/" + averageRun.getRunAverageContributionFlatTotal()));
-    averagePlayersLabel.setText(labelValue("Players", String.format("%.2f", averageRun.getRunAveragePlayers())));
-    averageMVPPercentLabel.setText(labelValue("MVP", String.format("%.2f", (averageRun.getRunAverageIsMVPPercent()) * 100) + "%"));
-    averageMVPTotalLabel.setText(labelValue("MVP Total", String.valueOf(averageRun.getRunAverageIsMVPTotal())));
-    averageTimeLabel.setText(labelValue("Time", averageRun.getRunAverageTime()));
-    killsPerHourLabel.setText(labelValue("Kills / hr", String.format("%.2f", averageRun.getRunAverageRunsPerHour())));
-    uniqueChancePerHourLabel.setText(labelValue("Unique Chance / hr", String.format("%.4f", averageRun.getRunAverageUniqueChancePercentPerHour()) + "%"));
-
-    int total = averageRun.getRunAverageTotal();
-    if (total != 0) {
-      uniqueRollCombined.setText(labelValue("Combined Unique Roll", String.format(fraction(averageRun.getRunAverageUniqueChanceRoll() / total))));
-    } else {
-      uniqueRollCombined.setText(labelValue("Combined Unique Roll", "N/A"));  // Or any appropriate fallback message
-    }
+  public void setCurrentRunMvp() {
+    currentRun.setMVP(true);
   }
 
-  private String labelTitle(String title) {
-    return "<html><div style='color:white;font-size:10px;'>" + title + "</div></html>";
-  }
-
-  private String labelValue(String name, String value) {
-    return "<html><div style='color:white;font-size:10px;'><b>" + name + ": </b>" + value + "</div></html>";
-  }
-
-  private String labelState(int state) {
-    String stateStr;
-    switch (state) {
-      case 1:
-        stateStr = "Active";
-        break;
-      case -1:
-        stateStr = "Cancelled";
-        break;
-      default:
-        stateStr = "Inactive";
-    }
-
-    return "<html><div style='color:white;font-size:10px;'><b>State: </b>" + stateStr + "</div></html>";
-  }
-
-  private String labelEmpty() {
-    return "<html><div style='color:white;font-size:10px;'><b></b></div></html>";
-  }
-
-  private String labelButton(String text) {
-    return "<html><div style='color:white;font-size:10px;'>" + text + "</div></html>";
-  }
-
-  private String fraction(int value) {
-    if (value == 0) {
-      return "N/A";
-    }
-    int denominator = (value);
-    return "1/" + denominator;
+  public void setCurrentRunMinimumContribution() {
+    currentRun.setMinimumContribution(true);
   }
 }

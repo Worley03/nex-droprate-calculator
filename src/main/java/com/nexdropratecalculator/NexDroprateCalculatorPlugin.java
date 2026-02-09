@@ -114,7 +114,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
         if (lastNexStatus == 3 && newStatus == 2) {
           // Nex just died (3 -> 2)
           // Schedule dump in 2 ticks - we need to delay this to wait for onChatMessage handler which updates mvp & min contribution
-          log.debug("Scheduling finished Nex fight dump");
+          log.debug("Scheduling finished Nex fight dump in {} ticks", DUMP_RESULTS_TICKS);
           ticksUntilDumpResults = DUMP_RESULTS_TICKS;
         } else if (newStatus == 1 || newStatus == 0) {
           // Ignore 2 -> 1 and 2 -> 0 statuses since this usually means player is leaving after a finished fight
@@ -122,7 +122,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
             // Either player left arena while Nex was alive (3 -> 1) or player logged out (X -> 0)
             // Cancel fight status immediately but schedule overlay removal to be done later
             panel.finishCurrentRun(RunState.CANCELLED, 0);
-            log.debug("Player left Nex fight, scheduling overlay removal");
+            log.debug("Player left Nex fight, scheduling overlay removal in {} ticks", REMOVE_OVERLAY_TICKS);
             ticksUntilOverlayRemoval = REMOVE_OVERLAY_TICKS;
           }
         }
@@ -147,7 +147,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     // Player is not in a Nex fight - delay executions by decrementing values until they reach 0
     if (ticksUntilFightStart > -1) {
       if (ticksUntilFightStart == 0) {
-        // Only actually start if the player is still at Nex (they could've left since delay start)
+        // Only actually start if the player is still at Nex (they could've left since the delay start)
         if (isNexAlive()) {
           startFight();
         }

@@ -146,7 +146,7 @@ class AverageValues {
     if (totalTicks == 0) {
       return 0;
     }
-    return 6000.0 / (totalTicks + 30.0);
+    return 6000.0 / (totalTicks + 61.0); // From Nex dying, there's exactly 61 ticks until she spawns and starts new fight
   }
 
   public double getUniqueChancePercentPerHour() {

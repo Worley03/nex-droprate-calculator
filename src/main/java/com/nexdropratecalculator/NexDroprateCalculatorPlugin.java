@@ -94,14 +94,14 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   protected void shutDown() {
     log.debug("Shutting down Nex Droprate Calculator Plugin");
 
+    // Overlay (it's removed first since it relies on panel - which should not be null)
+    overlay.setShouldRender(false);
+    overlayManager.remove(overlay);
     // Panel
     panel = null;
     // Side panel button
     clientToolbar.removeNavigation(navButton);
     navButton = null;
-    // Overlay
-    overlayManager.remove(overlay);
-    overlay.setShouldRender(false);
 
     log.debug("Nex Droprate Calculator Plugin shut down successfully");
   }

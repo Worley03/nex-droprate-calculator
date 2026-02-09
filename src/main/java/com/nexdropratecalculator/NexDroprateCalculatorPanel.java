@@ -243,7 +243,7 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
   }
 
   // Current run either just finished or was cancelled (due to player leaving/dying)
-  public void finishCurrentRun(RunState finishReason) {
+  public void finishCurrentRun(RunState finishReason, int ticksToSubstract) {
     currentRunActive = false;
 
     if (finishReason == RunState.FINISHED) {
@@ -252,6 +252,8 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
         // Set the mvp bonus - Math.min to ensure contribution doesn't exceed 100% (in case of a solo run)
         currentRun.updateUniqueChance(Math.min(currentRun.getContributionPercent() * 1.1, 100.0));
       }
+      // HACK: We've waited for N ticks after fight ended before finishing, correct the time
+      currentRun.setTicks(currentRun.getTicks() - ticksToSubstract);
       // update average run values from currentRun
       currentRun.setState(finishReason);
       avg.addRun(currentRun);

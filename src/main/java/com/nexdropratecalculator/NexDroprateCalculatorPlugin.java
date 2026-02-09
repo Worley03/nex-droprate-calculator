@@ -40,8 +40,10 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   // Timers for scheduling actions to run in N ticks
   private int ticksUntilDumpResults = -1;     // Time in ticks until dumping fight results
   private int ticksUntilOverlayRemoval = -1;  // Time in ticks until hiding overlay
+  private int ticksUntilFightStart = -1;
   private static final int DUMP_RESULTS_TICKS = 2;
   private static final int REMOVE_OVERLAY_TICKS = 50;
+  private static final int FIGHT_START_DELAY_TICKS = 4; // Fight always starts 4 ticks after Nex shouts 'Fill my soul...'
 
   private boolean isNexAlive() {
     return client.getVarbitValue(VarbitID.NEX_BARRIER) == 3;
@@ -119,7 +121,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
           if (lastNexStatus != 2) {
             // Either player left arena while Nex was alive (3 -> 1) or player logged out (X -> 0)
             // Cancel fight status immediately but schedule overlay removal to be done later
-            panel.finishCurrentRun(RunState.CANCELLED);
+            panel.finishCurrentRun(RunState.CANCELLED, 0);
             log.debug("Player left Nex fight, scheduling overlay removal");
             ticksUntilOverlayRemoval = REMOVE_OVERLAY_TICKS;
           }
@@ -143,10 +145,20 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     }
 
     // Player is not in a Nex fight - delay executions by decrementing values until they reach 0
+    if (ticksUntilFightStart > -1) {
+      if (ticksUntilFightStart == 0) {
+        // Only actually start if the player is still at Nex (they could've left since delay start)
+        if (isNexAlive()) {
+          startFight();
+        }
+      }
+      ticksUntilFightStart--;
+    }
+
     if (ticksUntilDumpResults > -1) {
       if (ticksUntilDumpResults == 0) {
         log.debug("Dumping finished Nex fight results");
-        panel.finishCurrentRun(RunState.FINISHED);
+        panel.finishCurrentRun(RunState.FINISHED, DUMP_RESULTS_TICKS);
       }
       ticksUntilDumpResults--;
     }
@@ -167,11 +179,12 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     }
     String message = event.getMessage();
 
-    // Use Nex's static lines to determine start of the fight
-    // This solution is better than detecting hitsplats since someone could trigger start arbitrarily by e.g. drinking a divine potion
+    // Use Nex's static lines to determine start of the fight. This solution is better than
+    // detecting hitsplats - Nex could be not attacked and her first damaging attack is delayed
     if (message.equals("Nex|Fill my soul with smoke!")) {
-      // Skip checking for panel.isCurrentRunActive(), already assume this message means beginning of the fight
-      startFight();
+      // Nex fight will actually start in a few ticks, delay until that exact moment
+      log.debug("Scheduling fight start in {} ticks", FIGHT_START_DELAY_TICKS);
+      ticksUntilFightStart = FIGHT_START_DELAY_TICKS;
     }
 
     if (message.equals("You were the MVP for this fight!")) {
@@ -189,21 +202,19 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
   @Subscribe
   public void onHitsplatApplied(HitsplatApplied event) {
-    if (!isNexAlive()) {
+    if (!panel.isCurrentRunActive()) {
       return;
     }
 
-    if (panel.isCurrentRunActive()) {
-      if (event.getActor() instanceof NPC) {
-        Hitsplat hitsplat = event.getHitsplat();
-        if (hitsplat.isMine()) {
-          ownContribution += hitsplat.getAmount();
-          //log.debug("Hitsplat applied to me: {}", hitsplat.getAmount()); // very spammy
-        }
-        if (hitsplat.getHitsplatType() != HitsplatID.HEAL) {
-          totalContribution += hitsplat.getAmount();
-          //log.debug("Total contribution updated: {}", totalContribution); // very spammy
-        }
+    if (event.getActor() instanceof NPC) {
+      Hitsplat hitsplat = event.getHitsplat();
+      if (hitsplat.isMine()) {
+        ownContribution += hitsplat.getAmount();
+        //log.debug("Hitsplat applied to me: {}", hitsplat.getAmount()); // very spammy
+      }
+      if (hitsplat.getHitsplatType() != HitsplatID.HEAL) {
+        totalContribution += hitsplat.getAmount();
+        //log.debug("Total contribution updated: {}", totalContribution); // very spammy
       }
     }
   }

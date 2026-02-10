@@ -119,6 +119,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
           // Schedule dump in 2 ticks - we need to delay this to wait for onChatMessage handler which updates mvp & min contribution
           log.debug("Scheduling finished Nex fight dump in {} ticks", DUMP_RESULTS_TICKS);
           ticksUntilDumpResults = DUMP_RESULTS_TICKS;
+          ticksUntilOverlayRemoval = REMOVE_OVERLAY_TICKS;
         } else if (newStatus == 1 || newStatus == 0) {
           // Ignore 2 -> 1 and 2 -> 0 statuses since this usually means player is leaving after a finished fight
           if (lastNexStatus != 2) {

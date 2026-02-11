@@ -38,6 +38,12 @@ public class NexDroprateCalculatorRun {
     }
   }
 
+  // After run finishes, we always wait few ticks before actually stopping it - this function accounts for that
+  public void adjustAfterFinish(int ticksToSubtract) {
+    ticks -= ticksToSubtract;
+    playersWeightedValue -= playersCurrent * ticksToSubtract; // player count can't change within ticks after nex dies
+  }
+
   public void updateUniqueChance(double contribPercent) {
     uniqueChanceRoll = (int) Math.ceil(43.0 * (100.0 / contribPercent));
     uniqueChancePercent = 1.0 / uniqueChanceRoll * 100.0;

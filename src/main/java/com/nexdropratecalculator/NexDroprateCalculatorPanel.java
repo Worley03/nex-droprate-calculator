@@ -253,8 +253,8 @@ public class NexDroprateCalculatorPanel extends PluginPanel {
         // Set the mvp bonus - Math.min to ensure contribution doesn't exceed 100% (in case of a solo run)
         currentRun.updateUniqueChance(Math.min(currentRun.getContributionPercent() * 1.1, 100.0));
       }
-      // HACK: We've waited for N ticks after fight ended before finishing, correct the time
-      currentRun.setTicks(currentRun.getTicks() - ticksToSubtract);
+      // HACK: We've waited for N ticks after fight ended, correct the relevant values
+      currentRun.adjustAfterFinish(ticksToSubtract);
       // update average run values from currentRun
       currentRun.setState(finishReason);
       avg.addRun(currentRun);

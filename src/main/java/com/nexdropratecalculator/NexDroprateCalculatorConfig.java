@@ -36,7 +36,7 @@ public interface NexDroprateCalculatorConfig extends Config {
             position = 3,
             keyName = LOG_KILLS,
             name = "Log Kills",
-            description = "Log kill data to .txt file in .runelite folder"
+            description = "Log kill data to nex-kills.log file in .runelite folder"
     )
     default boolean logKills() {
         return false;

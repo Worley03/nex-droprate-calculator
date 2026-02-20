@@ -2,8 +2,15 @@ package com.nexdropratecalculator;
 
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.RuneLite;
 import net.runelite.api.*;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
@@ -44,6 +51,9 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   private static final int DUMP_RESULTS_TICKS = 2;
   private static final int REMOVE_OVERLAY_TICKS = 50;
   private static final int FIGHT_START_DELAY_TICKS = 4; // Fight always starts 4 ticks after Nex shouts 'Fill my soul...'
+
+  private static final File KILL_LOG_FILE = new File(RuneLite.RUNELITE_DIR, "nex-kills.log");
+  private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   private boolean isNexAlive() {
     return client.getVarbitValue(VarbitID.NEX_BARRIER) == 3;
@@ -163,6 +173,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
       if (ticksUntilDumpResults == 0) {
         log.debug("Dumping finished Nex fight results");
         panel.finishCurrentRun(RunState.FINISHED, DUMP_RESULTS_TICKS);
+        logKillToFile(panel.currentRun);
       }
       ticksUntilDumpResults--;
     }
@@ -220,6 +231,29 @@ public class NexDroprateCalculatorPlugin extends Plugin {
         totalContribution += hitsplat.getAmount();
         //log.debug("Total contribution updated: {}", totalContribution); // very spammy
       }
+    }
+  }
+
+  private void logKillToFile(NexDroprateCalculatorRun run) {
+    if (!config.logKills()) {
+      return;
+    }
+    String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMAT);
+    String killTime = Utils.formatDuration(run.getTicks());
+    String contribution = String.format("%.2f%%", run.getContributionPercent());
+    String avgPlayers = String.format("%.2f", run.calculateAvgPlayers());
+
+    String line = String.join(",", timestamp, killTime, contribution, avgPlayers);
+
+    boolean isNewFile = !KILL_LOG_FILE.exists();
+    try (PrintWriter writer = new PrintWriter(new FileWriter(KILL_LOG_FILE, true))) {
+      if (isNewFile) {
+        writer.println("timestamp,kill_time,contribution,avg_players");
+      }
+      writer.println(line);
+      log.debug("Logged kill to file: {}", line);
+    } catch (IOException e) {
+      log.error("Failed to write kill log", e);
     }
   }
 

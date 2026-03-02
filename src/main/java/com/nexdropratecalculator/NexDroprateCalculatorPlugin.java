@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.ScheduledExecutorService;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.RuneLite;
@@ -34,6 +35,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   @Inject private Client client;
   @Inject private ClientToolbar clientToolbar;
   @Inject private ClientThread clientThread;
+  @Inject private ScheduledExecutorService executor;
   protected NexDroprateCalculatorPanel panel;
   private NavigationButton navButton;
   @Inject private OverlayManager overlayManager;
@@ -245,16 +247,18 @@ public class NexDroprateCalculatorPlugin extends Plugin {
 
     String line = String.join(",", timestamp, killTime, contribution, avgPlayers);
 
-    boolean isNewFile = !KILL_LOG_FILE.exists();
-    try (PrintWriter writer = new PrintWriter(new FileWriter(KILL_LOG_FILE, true))) {
-      if (isNewFile) {
-        writer.println("timestamp,kill_time,contribution,avg_players");
+    executor.execute(() -> {
+      boolean isNewFile = !KILL_LOG_FILE.exists();
+      try (PrintWriter writer = new PrintWriter(new FileWriter(KILL_LOG_FILE, true))) {
+        if (isNewFile) {
+          writer.println("timestamp,kill_time,contribution,avg_players");
+        }
+        writer.println(line);
+        log.debug("Logged kill to file: {}", line);
+      } catch (IOException e) {
+        log.error("Failed to write kill log", e);
       }
-      writer.println(line);
-      log.debug("Logged kill to file: {}", line);
-    } catch (IOException e) {
-      log.error("Failed to write kill log", e);
-    }
+    });
   }
 
   @Provides

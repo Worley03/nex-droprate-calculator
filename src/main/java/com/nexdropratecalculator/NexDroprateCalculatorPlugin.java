@@ -2,10 +2,12 @@ package com.nexdropratecalculator;
 
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ScheduledExecutorService;
@@ -54,7 +56,7 @@ public class NexDroprateCalculatorPlugin extends Plugin {
   private static final int REMOVE_OVERLAY_TICKS = 50;
   private static final int FIGHT_START_DELAY_TICKS = 4; // Fight always starts 4 ticks after Nex shouts 'Fill my soul...'
 
-  private static final File KILL_LOG_FILE = new File(RuneLite.RUNELITE_DIR, "nex-kills.log");
+  private static final String KILL_LOG_FILE_NAME = "nex-kills.log";
   private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   private boolean isNexAlive() {
@@ -240,6 +242,11 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     if (!config.logKills()) {
       return;
     }
+    Player player = client.getLocalPlayer();
+    if (player == null) {
+      return;
+    }
+
     String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMAT);
     String killTime = Utils.formatDuration(run.getTicks());
     String contribution = String.format("%.2f%%", run.getContributionPercent());
@@ -248,15 +255,24 @@ public class NexDroprateCalculatorPlugin extends Plugin {
     String line = String.join(",", timestamp, killTime, contribution, avgPlayers);
 
     executor.execute(() -> {
-      boolean isNewFile = !KILL_LOG_FILE.exists();
-      try (PrintWriter writer = new PrintWriter(new FileWriter(KILL_LOG_FILE, true))) {
-        if (isNewFile) {
+      // First, ensure subdirectories for plugin and user exist
+      Path path = null;
+      try {
+        path = Files.createDirectories(Paths.get(RuneLite.RUNELITE_DIR.getPath(), NexDroprateCalculatorConfig.GROUP, player.getName()));
+      } catch (IOException e) {
+        log.error("Failed to create directories");
+        return; // early out and don't attempt to write to log file
+      }
+
+      boolean logFileExists = Files.exists(path.resolve(KILL_LOG_FILE_NAME));
+      try (PrintWriter writer = new PrintWriter(new FileWriter(path.resolve(KILL_LOG_FILE_NAME).toString(), true))) {
+        if (!logFileExists) {
           writer.println("timestamp,kill_time,contribution,avg_players");
         }
         writer.println(line);
         log.debug("Logged kill to file: {}", line);
       } catch (IOException e) {
-        log.error("Failed to write kill log", e);
+        log.error("Failed to write to kill log", e);
       }
     });
   }

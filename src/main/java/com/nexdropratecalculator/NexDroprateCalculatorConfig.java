@@ -10,6 +10,7 @@ public interface NexDroprateCalculatorConfig extends Config {
 
     String SHOW_OVERLAY = "showOverlay";
     String DROP_RATE = "DropRate";
+    String LOG_KILLS = "logKills";
 
     @ConfigItem(
             position = 1,
@@ -29,6 +30,16 @@ public interface NexDroprateCalculatorConfig extends Config {
     )
     default boolean DropRate() {
         return true;
+    }
+
+    @ConfigItem(
+            position = 3,
+            keyName = LOG_KILLS,
+            name = "Log Kills",
+            description = "Log kill data to nex-kills.log file in .runelite folder"
+    )
+    default boolean logKills() {
+        return false;
     }
 }
 

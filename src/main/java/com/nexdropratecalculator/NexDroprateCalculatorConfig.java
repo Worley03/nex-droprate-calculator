@@ -9,6 +9,7 @@ public interface NexDroprateCalculatorConfig extends Config {
     String GROUP = "nex-droprate-calculator";
 
     String SHOW_OVERLAY = "showOverlay";
+    String SHOW_DAMAGE = "showDamage";
     String DROP_RATE = "DropRate";
     String LOG_KILLS = "logKills";
 
@@ -24,6 +25,16 @@ public interface NexDroprateCalculatorConfig extends Config {
 
     @ConfigItem(
             position = 2,
+            keyName = SHOW_DAMAGE,
+            name = "Show Damage",
+            description = "Show your damage / total damage alongside contribution in the overlay"
+    )
+    default boolean showDamage() {
+        return false;
+    }
+
+    @ConfigItem(
+            position = 3,
             keyName = DROP_RATE,
             name = "Increase Drop Rate",
             description = "Only works if you believe!"
@@ -33,7 +44,7 @@ public interface NexDroprateCalculatorConfig extends Config {
     }
 
     @ConfigItem(
-            position = 3,
+            position = 4,
             keyName = LOG_KILLS,
             name = "Log Kills",
             description = "Log kills data to the nex-droprate-calculator folder within the .runelite directory"
